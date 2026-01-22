@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ filme.nome }} - Detalhes</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="top-bar">
+        <div style="position: absolute; left: 20px;">
+            <a href="/filmes" style="color: #38bdf8; text-decoration: none;">⬅ Voltar</a>
+        </div>
+        <h1>Memora</h1>
+    </header>
+
+    <div class="container" style="text-align: center; margin-top: 50px;">
+        <h1 style="font-size: 3rem; color: #fff;">{{ filme.nome }}</h1>
+
+        <div style="margin: 30px 0;">
+            {% if filme.assistido %}
+                <span class="rating-badge rating-mid">Já Assistido</span>
+                {% if filme.nota %}
+                    <h2 style="margin-top: 20px;">Sua Nota: {{ filme.nota }}/10</h2>
+                {% endif %}
+            {% else %}
+                <span class="rating-badge" style="border: 1px solid #64748b; color: #94a3b8;">
+                    Planejado
+                </span>
+            {% endif %}
+        </div>
+
+        <h1 style="color: #94a3b8;">Fotos:</h1>
+    </div>
+</body>
+</html>

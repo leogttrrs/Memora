@@ -1,0 +1,424 @@
+/* --- MEMORA DARK MODE THEME --- */
+
+/* 1. Reset Global */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background-color: #0f172a; /* Azul quase preto (Fundo) */
+    color: #e2e8f0; /* Branco suave (Texto) */
+
+}
+
+/* 2. Cabeçalho Fixo */
+.top-bar {
+    background-color: #1e293b; /* Azul escuro (Barra) */
+    width: 100%;
+    padding: 20px 0;
+    text-align: center;
+    border-bottom: 1px solid #334155;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.top-bar h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    text-transform: uppercase;
+    color: #38bdf8; /* Um azul ciano para destacar o logo */
+}
+
+.section-category {
+    /* CENTRALIZAR: O comando clássico para texto */
+    text-align: center;
+
+    /* ESPAÇAMENTO: Um respiro em cima e em baixo */
+    margin: 40px 0 30px 0;
+
+    /* ESTILO: Visual "Subtítulo Moderno" */
+    font-size: 1.2rem;       /* Não muito grande */
+    color: #94a3b8;          /* Cinza azulado (slate-400) - suave aos olhos */
+    font-weight: 400;        /* Fonte normal (não negrito) para contraste */
+    text-transform: uppercase; /* Caixa alta */
+    letter-spacing: 3px;     /* Letras bem espaçadas (dá um ar sofisticado) */
+
+    /* LINHAS LATERAIS (Opcional - Efeito visual bacana) */
+    display: flex;           /* Agora sim usamos flex para as linhas */
+    align-items: center;     /* Alinha as linhas com o texto */
+    justify-content: center; /* Centraliza o conjunto todo */
+    gap: 15px;               /* Espaço entre a linha e o texto */
+}
+
+/* Criando linhas decorativas ao lado do texto (Se quiser usar) */
+.section-category::before,
+.section-category::after {
+    content: "";
+    height: 1px;
+    width: 50px;             /* Tamanho da linha */
+    background-color: #334155; /* Cor da linha (escura e discreta) */
+    display: block;
+}
+
+.section-title {
+    /* Removemos o display: flex e o justify-content */
+    text-align: center; /* Centraliza tudo dentro */
+    margin: 40px 0 20px 0;
+    position: relative;
+}
+
+.add_btn {
+    /* RESETAMOS A MARGEM */
+    margin: 0;
+
+    /* Resto das configurações iguais... */
+    background-color: #38bdf8;
+    color: #0f172a;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+    transition: all 0.3s ease;
+}
+
+.action-area {
+    text-align: center; /* Centraliza o botão */
+    padding-bottom: 40px; /* Garante que não cola no fim da página */
+}
+
+/* Efeito ao passar o mouse */
+.add_btn:hover {
+    background-color: #7dd3fc; /* Fica um pouco mais claro */
+    transform: translateY(-3px); /* Sobe um pouquinho */
+    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6); /* Sombra aumenta */
+}
+
+/* Efeito ao clicar */
+.add_btn:active {
+    transform: translateY(1px); /* Desce como se fosse apertado */
+    box-shadow: 0 2px 10px rgba(56, 189, 248, 0.3);
+}
+
+.section-title h1 {
+    font-size: 5rem;
+    line-height: 1;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -2px;
+    margin: 0; /* Removemos margens estranhas */
+
+    /* O gradiente e sombra continuam iguais */
+    background: -webkit-linear-gradient(#fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 4px 30px rgba(56, 189, 248, 0.25);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #334155; /* Um cinza azulado discreto */
+    border-radius: 4px; /* Bordas redondas */
+    border: 2px solid #0f172a; /* Cria uma margem interna para ficar bonito */
+}
+
+::-webkit-scrollbar {
+    width: 8px; /* Fininha e elegante */
+}
+
+::-webkit-scrollbar-track {
+    background: #0f172a; /* Mesma cor de fundo do site */
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #38bdf8; /* Fica AZUL NEON (Sua cor de destaque) */
+}
+
+
+/* 3. Layout Principal */
+.container {
+    max-width: 1000px;
+    margin: 40px auto; /* Centraliza na tela */
+    padding: 0 20px;
+    align-items: center;
+}
+
+/* 4. A Mágica do Grid (Organiza os cards) */
+.dashboard-grid {
+    display: grid;
+    /* Isso cria colunas automáticas. Mínimo de 150px, máximo do que der. */
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 20px; /* Espaço entre os cards */
+}
+
+/* 5. Design do Card Individual */
+.menu-card {
+    background-color: #1e293b; /* Mesma cor do header */
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 30px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease; /* Animação suave */
+}
+
+/* Efeito ao passar o mouse (Hover) */
+.menu-card:hover {
+    background-color: #334155; /* Fica ligeiramente mais claro */
+    transform: translateY(-5px); /* O card sobe 5 pixels */
+    border-color: #38bdf8; /* A borda brilha em azul ciano */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+/* Ícones (Emojis) */
+.menu-card .icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+/* Texto do Card */
+.menu-card h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #f1f5f9;
+}
+
+.title_todo h2{
+    text-align: center
+}
+
+/* --- Lista de Filmes (Scrollável) --- */
+.movie-list-container {
+    max-width: 800px; /* Largura da caixa */
+    margin: 20px auto; /* Centralizar */
+    background-color: #1e293b; /* Fundo do container */
+    border-radius: 12px;
+    border: 1px solid #334155;
+
+    /* A MÁGICA DO SCROLL: */
+    height: 400px;       /* Altura fixa */
+    overflow-y: auto;    /* Se passar da altura, cria barra de rolagem */
+    padding: 20px;
+}
+
+/* Estilo de cada Item da lista */
+.movie-item {
+    background-color: #0f172a; /* Mais escuro que o container */
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border-left: 4px solid #38bdf8; /* Detalhe azul na esquerda */
+    color: #e2e8f0;
+    font-size: 1.1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+    /* --- CONFIGURAÇÕES DE LINK --- */
+    text-decoration: none; /* Remove o sublinhado feio */
+    color: inherit;        /* Usa a cor do texto do pai (branco/cinza), não o azul padrão */
+    cursor: pointer;       /* Garante a mãozinha */
+    display: flex;           /* Faz o <a> virar uma caixa flexível */
+    width: 100%;             /* Força ocupar a largura toda do container */
+    box-sizing: border-box;  /* Garante que o padding não estoure o tamanho */
+}
+
+.movie-item:hover {
+    background-color: #1a2436; /* Efeito hover sutil */
+    transform: translateX(5px);
+}
+
+/* Estilo para quando a lista está vazia */
+.empty-state {
+    text-align: center;
+    color: #94a3b8;
+    margin-top: 150px;
+    font-size: 1.2rem;
+    font-style: italic;
+}
+
+/* --- Badges de Nota --- */
+.rating-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px; /* Espaço entre a estrela e o número */
+
+    padding: 4px 12px;
+    border-radius: 20px; /* Borda bem redonda */
+    font-weight: 800;
+    font-size: 0.9rem;
+    min-width: 50px;
+}
+
+/* Nota Alta (8 a 10) - Verde Esmeralda */
+.rating-high {
+    background-color: rgba(16, 185, 129, 0.2); /* Fundo transparente */
+    color: #34d399; /* Texto brilhante */
+    border: 1px solid #10b981;
+}
+
+/* Nota Média (5 a 7) - Amarelo/Laranja */
+.rating-mid {
+    background-color: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border: 1px solid #f59e0b;
+}
+
+/* Nota Baixa (0 a 4) - Vermelho/Rosa */
+.rating-low {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid #ef4444;
+}
+
+.lists-wrapper {
+    display: grid;
+    /* Cria duas colunas de tamanho igual (1 fração cada) */
+    grid-template-columns: 1fr 1fr;
+    gap: 30px; /* Espaço entre as colunas */
+
+    max-width: 1200px; /* Largura total maior para caber as duas */
+    margin: 0 auto;    /* Centraliza na tela */
+    padding: 0 20px 40px 20px;
+}
+
+.title_todo {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.title_todo h2 {
+    color: #94a3b8;
+    font-weight: 400;
+    font-size: 1rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.movie-list-container {
+    width: 100%;       /* Ocupa todo o espaço da coluna do grid */
+    height: 500px;     /* Aumentei um pouco a altura */
+    background-color: #1e293b;
+    border-radius: 12px;
+    border: 1px solid #334155;
+    overflow-y: auto;
+    padding: 20px;
+
+    /* Removemos o margin: 20px auto antigo, pois o Grid já cuida do layout */
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .lists-wrapper {
+        grid-template-columns: 1fr; /* Volta para 1 coluna só */
+    }
+}
+
+.screens-container {
+    width: 100%;
+}
+
+.screens-container.show-form #main-view {
+    transform: translateX(-120vw); /* Vai pra esquerda */
+    opacity: 0.3; /* Fica meio transparente */
+}
+
+.screens-container.show-form #form-view {
+    transform: translateX(0); /* Vem pro centro */
+    opacity: 1;
+    pointer-events: all; /* Volta a ser clicável */
+}
+
+.form-card {
+    background-color: #1e293b;
+    padding: 40px;
+    border-radius: 16px;
+    border: 1px solid #334155;
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.form-card h2 {
+    color: #38bdf8;
+    margin-bottom: 10px;
+}
+
+.form-card p {
+    color: #94a3b8;
+    margin-bottom: 30px;
+}
+
+.form-card input {
+    width: 100%;
+    background-color: #0f172a;
+    border: 2px solid #334155;
+    padding: 15px;
+    border-radius: 8px;
+    color: white;
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    outline: none;
+    transition: border 0.3s;
+}
+
+.form-card input:focus {
+    border-color: #38bdf8;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn-cancel {
+    background: transparent;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    padding: 12px 24px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.3s;
+}
+
+.btn-cancel:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.screen {
+    width: 100%;
+    transition: all 0.5s ease-in-out;
+}
+
+#main-view {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+#form-view {
+    position: fixed; /* Fixa para não ocupar espaço embaixo */
+    top: 100px;      /* Abaixo do header */
+    left: 0;
+    transform: translateX(120vw); /* Fora da tela pra direita */
+    opacity: 0;
+
+    /* Centralização do conteúdo do form */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    height: 100%;
+    padding-top: 50px;
+    pointer-events: none; /* Não clicável enquanto escondido */
+}

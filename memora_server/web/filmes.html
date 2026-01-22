@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filmes - Memora</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body style="overflow-x: hidden;"> <header class="top-bar">
+        <div style="position: absolute; left: 20px;">
+            <a href="/" style="color: #38bdf8; text-decoration: none;">⬅ Voltar</a>
+        </div>
+        <h1>Memora</h1>
+    </header>
+
+    <div class="screens-container">
+
+        <div id="main-view" class="screen">
+
+            <div class="section-title">
+                <h1>Filmes</h1>
+            </div>
+
+            <div class="lists-wrapper">
+                <div class="list-column">
+                    <div class="title_todo"><h2>PLANEJADOS:</h2></div>
+                    <div class="movie-list-container">
+                        {% if filmes_planejados %}
+                            {% for filme in filmes_planejados %}
+                                <a href="/filmes/{{ filme.id }}" class="movie-item">
+                                    <span>{{ filme.nome }}</span>
+                                    <span style="font-size: 0.8rem; color: #64748b;">Planejado</span>
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <p>Nenhum plano encontrado...</p>
+                                <p>Adicione um filme nos seus planos! 🎬</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="list-column">
+                    <div class="title_todo"><h2>ASSISTIDOS:</h2></div>
+                    <div class="movie-list-container">
+                        {% if filmes_assistidos %}
+                            {% for filme in filmes_assistidos %}
+                                <a href="/filmes/{{ filme.id }}" class="movie-item">
+                                    <span>{{ filme.nome }}</span>
+                                    {% if filme.nota >= 8 %}
+                                        <span class="rating-badge rating-high">★ {{ filme.nota }}</span>
+                                    {% elif filme.nota >= 5 %}
+                                        <span class="rating-badge rating-mid">★ {{ filme.nota }}</span>
+                                    {% else %}
+                                        <span class="rating-badge rating-low">★ {{ filme.nota }}</span>
+                                    {% endif %}
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <p>Nenhum filme assistido</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-area">
+                <button class="add_btn" onclick="toggleForm(true)">
+                    Adicionar Novo Filme
+                </button>
+            </div>
+        </div>
+        <div id="form-view" class="screen form-screen">
+            <div class="form-card">
+                <h2>Novo Filme</h2>
+                <p>O que vamos assistir?</p>
+
+                <form action="/filmes/novo" method="post">
+                    <input type="text" name="nome_filme" placeholder="Digite o nome do filme" required autocomplete="off">
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" onclick="toggleForm(false)">Cancelar</button>
+                        <button type="submit" class="add_btn">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        </div>
+
+    <script>
+        function toggleForm(show) {
+            const container = document.querySelector('.screens-container');
+            if (show) {
+                container.classList.add('show-form');
+            } else {
+                container.classList.remove('show-form');
+            }
+        }
+    </script>
+</body>
+</html>
