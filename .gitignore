@@ -1,0 +1,17 @@
+# Ignore as pastas de ambiente virtual (onde quer que estejam)
+venv/
+env/
+.env
+.env.development
+
+# Ignore arquivos compilados do python
+__pycache__/
+*.pyc
+
+# Ignore arquivos do sistema (Mac/Linux/Windows)
+.DS_Store
+Thumbs.db
+
+# Ignore IDEs
+.vscode/
+.idea/
