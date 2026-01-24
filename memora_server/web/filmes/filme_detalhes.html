@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ filme.nome }} - Detalhes</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/css/style.css">
     <link rel="icon" href="/static/memora.png">
 </head>
 <body>
@@ -103,7 +103,7 @@
             {% endif %}
         </div>
 
-        <h1 style="color: #94a3b8;">Comentários:</h1>
+        <h1 style="color: #94a3b8; margin-bottom: 10px;">Comentários:</h1>
 
         <div class="comments-section">
             <form action="/filmes/update-comentario/{{ filme.id }}" method="post">
@@ -111,7 +111,6 @@
                 <textarea
                     name="comentario"
                     class="comment-box"
-                    placeholder="Escreva o que achou do filme, ou por que quer assistir..."
                     rows="5"
                 >{{ filme.comentarios or "" }}</textarea>
 
@@ -150,7 +149,7 @@
                 {% endfor %}
             </div>
         {% else %}
-            <p style="color: #64748b; font-style: italic;">Nenhuma foto registrada... Tire uma selfie com a pipoca! 🍿</p>
+            <p style="color: #64748b; font-style: italic; margin-top: 50px;">Nenhuma foto registrada... Tire uma selfie com a pipoca! 🍿</p>
         {% endif %}
 
         <div id="lightbox" class="lightbox-overlay" onclick="fecharLightbox()">

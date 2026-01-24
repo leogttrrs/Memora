@@ -13,11 +13,11 @@ from pathlib import Path
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 # O arquivo index.html está na mesma pasta que este arquivo python
 INDEX_PATH = os.path.join(CURRENT_DIR, "index.html")
-FILMES_PATH = os.path.join(CURRENT_DIR, "filmes.html")
-SERIES_PATH = os.path.join(CURRENT_DIR, "series.html")
-JOGOS_PATH = os.path.join(CURRENT_DIR, "jogos.html")
-RECEITAS_PATH = os.path.join(CURRENT_DIR, "receitas.html")
-VIAGENS_PATH = os.path.join(CURRENT_DIR, "viagens.html")
+FILMES_PATH = os.path.join(CURRENT_DIR, "filmes/filmes.html")
+SERIES_PATH = os.path.join(CURRENT_DIR, "series/series.html")
+JOGOS_PATH = os.path.join(CURRENT_DIR, "jogos/jogos.html")
+RECEITAS_PATH = os.path.join(CURRENT_DIR, "receitas/receitas.html")
+VIAGENS_PATH = os.path.join(CURRENT_DIR, "viagens/viagens.html")
 
 templates = Jinja2Templates(directory=CURRENT_DIR)
 
@@ -54,7 +54,7 @@ def read_filmes(request: Request):
     except Exception as e:
         print(f"Erro no banco: {e}")
 
-    return templates.TemplateResponse("filmes.html", {
+    return templates.TemplateResponse("filmes/filmes.html", {
         "request": request,
         "filmes_planejados": filmes_planejados,
         "filmes_assistidos": filmes_assistidos
@@ -218,13 +218,13 @@ def read_filme_detalhe(request: Request, filme_id: int):
 
     if not filme_encontrado:
         return templates.TemplateResponse(
-            "filme_nao_encontrado.html",
+            "filmes/filme_nao_encontrado.html",
             {"request": request},
             status_code=404
         )
 
     return templates.TemplateResponse(
-        "filme_detalhes.html",
+        "filmes/filme_detalhes.html",
         {"request": request,"filme": filme_encontrado, "fotos": lista_fotos}
     )
 
@@ -340,13 +340,38 @@ def remover_foto(foto_id: int):
         print(f"Erro ao deletar foto: {e}")
         return RedirectResponse(url="/filmes", status_code=303)
 
-@router.get("/series", response_class=HTMLResponse)
-def read_series():
+@router.get("/series")
+def read_series(request: Request):
+    series_planejadas = []
+    series_assistidas = []
+
     try:
-        with open(SERIES_PATH, "r", encoding="utf-8") as f:
-            return f.read()
-    except FileNotFoundError:
-        return "<h1>series.html não encontrado!</h1>"
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM series ORDER BY id DESC")
+        series_dados = cursor.fetchall()
+
+        for item in series_dados:
+            id_item = item[0]
+            nome_item = item[1]
+            nota = item[2]
+
+            if nota is None:
+                series_planejadas.append({"id": id_item, "nome": nome_item})
+            else:
+                series_assistidas.append({"id": id_item, "nome": nome_item, "nota": nota})
+
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    return templates.TemplateResponse("series/series.html", {
+        "request": request,
+        "series_planejadas": series_planejadas,
+        "series_assistidas": series_assistidas,
+    })
 
 @router.get("/jogos", response_class=HTMLResponse)
 def read_jogos():
