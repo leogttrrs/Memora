@@ -1,9 +1,12 @@
 # memora_server/web/views.py
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 import os
 from fastapi.templating import Jinja2Templates
 from core.database import get_connection
+import shutil
+import uuid
+from pathlib import Path
 
 # Precisamos descobrir onde estamos para achar o HTML
 # Como este arquivo está dentro de 'web/', o BASE_DIR muda um pouco
@@ -58,12 +61,32 @@ def read_filmes(request: Request):
     })
 
 @router.post("/filmes/novo")
-def create_filme(request: Request, nome_filme: str = Form(...)):
+def create_filme(request: Request, nome_filme: str = Form(...), imagem: UploadFile = File(None)):
     try:
+        caminho_imagem = None
+        TIPOS_VALIDOS = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
+
+        if imagem and imagem.filename:
+
+            if imagem.content_type not in TIPOS_VALIDOS:
+                print(f"Arquivo rejeitado: {imagem.content_type}")
+                return RedirectResponse(url="/filmes", status_code=303)
+
+            extensao = imagem.filename.split(".")[-1]
+            nome_arquivo = f"{uuid.uuid4()}.{extensao}"
+
+            pasta_destino = Path("static/uploads")
+            pasta_destino.mkdir(parents=True, exist_ok=True)
+            caminho_final = pasta_destino / nome_arquivo
+
+            with open(caminho_final, "wb") as buffer:
+                shutil.copyfileobj(imagem.file, buffer)
+            caminho_imagem = f"uploads/{nome_arquivo}"
+
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("INSERT INTO filmes (nome) VALUES (%s)", (nome_filme,))
+        cursor.execute("INSERT INTO filmes (nome, imagem_capa) VALUES (%s, %s)", (nome_filme, caminho_imagem))
         conn.commit()
         cursor.close()
         conn.close()
@@ -71,6 +94,50 @@ def create_filme(request: Request, nome_filme: str = Form(...)):
         print(f"Erro ao salvar: {e}")
 
     return RedirectResponse(url="/filmes", status_code=303)
+
+
+@router.post("/filmes/{filme_id}/update-capa")
+def update_filme_capa(
+        filme_id: int,
+        imagem: UploadFile = File(...)
+):
+    try:
+        caminho_imagem = None
+        TIPOS_VALIDOS = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
+        if imagem and imagem.filename:
+
+            if imagem.content_type not in TIPOS_VALIDOS:
+                return RedirectResponse(url="/filmes?erro=tipo_invalido", status_code=303)
+
+            extensao = imagem.filename.split(".")[-1]
+            nome_arquivo = f"{uuid.uuid4()}.{extensao}"
+
+            pasta_destino = Path("static/uploads")
+            pasta_destino.mkdir(parents=True, exist_ok=True)
+            caminho_final = pasta_destino / nome_arquivo
+
+            with open(caminho_final, "wb") as buffer:
+                shutil.copyfileobj(imagem.file, buffer)
+
+            caminho_imagem = f"uploads/{nome_arquivo}"
+
+        if caminho_imagem:
+            conn = get_connection()
+            cursor = conn.cursor()
+
+            cursor.execute(
+                "UPDATE filmes SET imagem_capa = %s WHERE id = %s",
+                (caminho_imagem, filme_id)
+            )
+
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+    except Exception as e:
+        print(f"Erro ao atualizar capa: {e}")
+
+    return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
 
 @router.get("/filmes/{filme_id}")
 def read_filme_detalhe(request: Request, filme_id: int):
@@ -88,7 +155,8 @@ def read_filme_detalhe(request: Request, filme_id: int):
                 "id": dados[0],
                 "nome": dados[1],
                 "nota": dados[2],
-                "assistido": dados[3]
+                "assistido": dados[3],
+                "caminho_imagem": dados[4]
             }
 
         cursor.close()
@@ -104,10 +172,65 @@ def read_filme_detalhe(request: Request, filme_id: int):
             status_code=404
         )
 
-    return templates.TemplateResponse("filme_detalhes.html", {
-        "request": request,
-        "filme": filme_encontrado
-    })
+    return templates.TemplateResponse(
+        "filme_detalhes.html",
+        {"request": request,"filme": filme_encontrado}
+    )
+
+@router.post("/filmes/remove-plan/{filme_id}")
+def remove_plan_filme(request: Request, filme_id: int):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM filmes WHERE ID = %s", (filme_id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    return RedirectResponse(url="/filmes", status_code=303)
+
+@router.post("/filmes/mark-as-watched/{filme_id}")
+def mark_as_watched_filme(request: Request, filme_id, nota: int = Form(...)):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE filmes SET assistido = true, nota = %s WHERE id = %s",
+            (nota, filme_id)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
+
+@router.post("/filmes/alterar-nota/{filme_id}")
+def alterar_nota_filme(request: Request, filme_id, nota: int = Form(...)):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        print(filme_id)
+        print(nota)
+
+        cursor.execute(
+            "UPDATE filmes SET nota = %s where id = %s", (nota, filme_id)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
 
 @router.get("/series", response_class=HTMLResponse)
 def read_series():

@@ -11,6 +11,7 @@ body {
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     background-color: #0f172a; /* Azul quase preto (Fundo) */
     color: #e2e8f0; /* Branco suave (Texto) */
+    padding-top: 80px;
 
 }
 
@@ -22,6 +23,15 @@ body {
     text-align: center;
     border-bottom: 1px solid #334155;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+    position: fixed; /* Trava a barra na tela */
+    top: 0;          /* Cola no teto */
+    left: 0;         /* Cola na esquerda */
+    width: 100%;     /* Garante largura total */
+    z-index: 1000;   /* Garante que fique POR CIMA de tudo (filmes, modais, etc) */
+
+    /* Opcional: Uma sombra suave para destacar do conteúdo */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
 .top-bar h1 {
@@ -70,7 +80,7 @@ body {
     position: relative;
 }
 
-.add_btn {
+.add-btn {
     /* RESETAMOS A MARGEM */
     margin: 0;
 
@@ -90,20 +100,45 @@ body {
     transition: all 0.3s ease;
 }
 
+.alter-btn{
+    margin-top: 20px;
+
+    /* Resto das configurações iguais... */
+    background-color: #38bdf8;
+    color: #0f172a;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+    transition: all 0.3s ease;
+}
+
+.alter-btn:hover {
+    background-color: #7dd3fc; /* Fica um pouco mais claro */
+    transform: translateY(-3px); /* Sobe um pouquinho */
+    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6); /* Sombra aumenta */
+}
+
 .action-area {
     text-align: center; /* Centraliza o botão */
     padding-bottom: 40px; /* Garante que não cola no fim da página */
 }
 
 /* Efeito ao passar o mouse */
-.add_btn:hover {
+.add-btn:hover {
     background-color: #7dd3fc; /* Fica um pouco mais claro */
     transform: translateY(-3px); /* Sobe um pouquinho */
     box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6); /* Sombra aumenta */
 }
 
 /* Efeito ao clicar */
-.add_btn:active {
+.add-btn:active {
     transform: translateY(1px); /* Desce como se fosse apertado */
     box-shadow: 0 2px 10px rgba(56, 189, 248, 0.3);
 }
@@ -149,6 +184,15 @@ body {
     margin: 40px auto; /* Centraliza na tela */
     padding: 0 20px;
     align-items: center;
+}
+
+.action-footer {
+    display: flex;
+    justify-content: flex-end; /* Joga para a DIREITA */
+    margin-top: 50px;          /* Empurra para BAIXO */
+    padding-top: 20px;
+    border-top: 1px solid #1e293b; /* Opcional: uma linha sutil separando */
+    width: 100%;
 }
 
 /* 4. A Mágica do Grid (Organiza os cards) */
@@ -344,7 +388,7 @@ body {
     border-radius: 16px;
     border: 1px solid #334155;
     width: 100%;
-    max-width: 500px;
+    max-width: 800px;
     text-align: center;
     box-shadow: 0 20px 50px rgba(0,0,0,0.5);
 }
@@ -380,6 +424,7 @@ body {
     display: flex;
     gap: 15px;
     justify-content: center;
+    margin-top: 40px;
 }
 
 .btn-cancel {
@@ -395,6 +440,22 @@ body {
 
 .btn-cancel:hover {
     background: rgba(239, 68, 68, 0.1);
+}
+
+.btn-delete {
+    background: transparent;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    padding: 12px 24px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.3s;
+}
+
+.btn-delete:hover {
+    background: rgba(239, 68, 68, 0.1);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); /* Efeito de brilho vermelho */
 }
 
 .screen {
@@ -422,3 +483,264 @@ body {
     padding-top: 50px;
     pointer-events: none; /* Não clicável enquanto escondido */
 }
+
+.movie-cover-container {
+    text-align: center;
+    margin: 20px 0;
+    /* Centraliza a imagem se a tela for maior que ela */
+    display: flex;
+    justify-content: center;
+}
+
+.movie-cover {
+    /* --- TAMANHO NOVO (MAIOR) --- */
+    width: 8000px;            /* Era 300px */
+    height: 500px;           /* Era 450px (Mantendo a proporção 2:3) */
+
+    /* Garante que não quebre a tela em celulares pequenos */
+    max-width: 100%;
+
+    /* --- O RESTO CONTINUA IGUAL --- */
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    background-color: #1e293b;
+}
+
+/* Remova a limitação de tamanho da genérica, deixe só a opacidade se quiser */
+.movie-cover.generic {
+    opacity: 0.5;  /* Deixa ela meio fantasma */
+    /* Apaguei o max-width: 200px que estava aqui antes */
+}
+
+/* Container Geral */
+.custom-file-box {
+    position: relative;
+    width: 100%;
+    height: 55px; /* Altura fixa é importante para o absolute funcionar bem */
+    background-color: #0F172A;
+    border: 2px solid #334155;
+    border-radius: 8px;
+    cursor: pointer;
+    overflow: hidden; /* Garante que nada saia da caixa durante o slide */
+    transition: all 0.3s;
+}
+
+.custom-file-box:hover {
+    border-color: #38bdf8;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.1); /* Um brilho leve */
+}
+
+/* O Input Real fica invisível e esticado por cima de tudo */
+#real-input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    z-index: 20; /* Fica acima de tudo */
+    cursor: pointer;
+    left: 0;
+    top: 0;
+}
+
+/* A Camada Visual (Fundo) */
+.visual-layer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Deixa o clique passar */
+}
+
+/* Estilo do Texto */
+.custom-text {
+    position: absolute;
+    top: 50%;
+    /* Centraliza verticalmente e define posição inicial X */
+    transform: translateY(-50%) translateX(15px);
+    left: 0;
+
+    color: #94a3b8;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60%; /* Evita atropelar o botão */
+
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); /* Animação suave */
+}
+
+/* Estilo do Botão */
+.custom-btn {
+    position: absolute;
+    top: 50%;
+    /* Começa na direita: Vai para 100% da largura e volta o tamanho dele mesmo + 15px */
+    left: 100%;
+    transform: translateY(-50%) translateX(calc(-100% - 15px));
+
+
+    /* Adicionei line-height para garantir que a letra não empurre o botão */
+    line-height: 0.8;
+
+    background-color: #334155;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- A MÁGICA DA TROCA DE LADOS --- */
+
+/* Quando tiver arquivo, adicionamos essa classe via JS *
+
+/* Quando inverte, o botão vai pra esquerda e o texto pra direita.
+   Precisamos ajustar a cor do texto para parecer "ativo" */
+.custom-file-box.has-file .custom-text {
+    left: 100%;
+    transform: translateY(-50%) translateX(calc(-100% - 15px));
+    color: #cbd5e1; /* Fica mais claro */
+    text-align: right;
+}
+
+.custom-file-box.has-file .custom-btn {
+    left: 0;
+    transform: translateY(-50%) translateX(15px);
+    background-color: #38bdf8; /* Muda de cor para azul (opcional, fica bonito!) */
+    color: #0F172A; /* Texto escuro para contraste no azul */
+}
+
+/* Wrapper para posicionar o overlay em cima da imagem */
+.cover-wrapper {
+    position: relative; /* Importante! */
+    display: inline-block; /* Ajusta ao tamanho da imagem */
+    cursor: pointer;
+    border-radius: 12px;
+    overflow: hidden; /* Garante que o overlay respeite as bordas arredondadas */
+}
+
+/* O Overlay (Sombra preta com texto) */
+.edit-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Fundo preto transparente */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0; /* Começa invisível */
+    transition: opacity 0.3s ease;
+}
+
+/* Texto dentro do overlay */
+.edit-overlay span {
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.2rem;
+    border: 2px solid #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background-color: rgba(0,0,0,0.5);
+}
+
+/* Quando passa o mouse no wrapper, mostra o overlay */
+.cover-wrapper:hover .edit-overlay {
+    opacity: 0.5;
+}
+
+.grade-form-container {
+    background-color: rgba(30, 41, 59, 0.5); /* Fundo sutil */
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px dashed #475569; /* Borda tracejada indica "área de ação" */
+    margin-top: 20px;
+}
+
+.input-nota {
+    width: 70px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background-color: #0F172A;
+    color: #fff;
+    font-size: 1.1rem;
+    text-align: center;
+    font-weight: bold;
+    -moz-appearance: textfield;
+}
+
+.input-nota::-webkit-outer-spin-button,
+.input-nota::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input-nota:focus {
+    outline: none;
+    border-color: #38bdf8;
+}
+
+.btn-confirm {
+    background-color: #22c55e; /* Verde (Sucesso) */
+    color: #fff;
+    border: none;
+    padding: 11px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-confirm:hover {
+    background-color: #16a34a;
+}
+
+/* Fundo escuro que cobre a tela toda */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Preto transparente */
+    z-index: 2000; /* Fica acima de tudo (inclusive do header) */
+
+    /* Centraliza a caixa no meio da tela */
+    display: flex; /* O JS vai mudar isso para 'flex' ou 'none' */
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px); /* Efeito de desfoque no fundo (moderno!) */
+}
+
+/* A caixinha do formulário */
+.modal-box {
+    background-color: #1e293b;
+    padding: 30px;
+    border-radius: 16px;
+    border: 1px solid #334155;
+    text-align: center;
+    width: 90%;
+    max-width: 350px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+
+    /* Animação de entrada */
+    animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* Animação bonitinha de 'pulo' quando abre */
+@keyframes modalPop {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+

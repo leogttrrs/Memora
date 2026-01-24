@@ -3,15 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Filmes - Memora</title>
+    <title>Memora - Filmes</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
 </head>
-<body style="overflow-x: hidden;"> <header class="top-bar">
+<body style="overflow-x: hidden;">
+    <header class="top-bar">
         <div style="position: absolute; left: 20px;">
             <a href="/" style="color: #38bdf8; text-decoration: none;">⬅ Voltar</a>
         </div>
         <h1>Memora</h1>
     </header>
+    <div id="alerta-erro" style="display: none; background: #ef4444; color: white; padding: 15px; text-align: center; margin: 10px;">
+        ❌ <strong>Erro:</strong> Apenas arquivos de imagem (JPG, PNG) são permitidos!
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('erro') === 'tipo_invalido') {
+            document.getElementById('alerta-erro').style.display = 'block';
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    </script>
 
     <div class="screens-container">
 
@@ -35,7 +47,6 @@
                         {% else %}
                             <div class="empty-state">
                                 <p>Nenhum plano encontrado...</p>
-                                <p>Adicione um filme nos seus planos! 🎬</p>
                             </div>
                         {% endif %}
                     </div>
@@ -59,7 +70,7 @@
                             {% endfor %}
                         {% else %}
                             <div class="empty-state">
-                                <p>Nenhum filme assistido</p>
+                                <p>Nenhum filme assistido...</p>
                             </div>
                         {% endif %}
                     </div>
@@ -67,7 +78,7 @@
             </div>
 
             <div class="action-area">
-                <button class="add_btn" onclick="toggleForm(true)">
+                <button class="add-btn" onclick="toggleForm(true)">
                     Adicionar Novo Filme
                 </button>
             </div>
@@ -77,27 +88,36 @@
                 <h2>Novo Filme</h2>
                 <p>O que vamos assistir?</p>
 
-                <form action="/filmes/novo" method="post">
-                    <input type="text" name="nome_filme" placeholder="Digite o nome do filme" required autocomplete="off">
+                <form action="/filmes/novo" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label>Nome do Filme</label>
+                        <input type="text" name="nome_filme" required autocomplete="off">
+                    </div>
+
+                    <div class="form-group" style="margin-top:15px">
+                        <label>Capa do Filme (Opcional)</label>
+                        <div class="custom-file-box" id="file-box">
+
+                            <input type="file" name="imagem" id="real-input" accept="image/*" onchange="atualizarInput(this)">
+
+                            <div class="visual-layer">
+                                <span class="custom-text" id="file-text">Selecione uma imagem...</span>
+                                <span class="custom-btn">Escolher Arquivo</span>
+                            </div>
+
+                        </div>
+                    </div>
 
                     <div class="form-actions">
+                        <button type="submit" class="add-btn">Salvar</button>
                         <button type="button" class="btn-cancel" onclick="toggleForm(false)">Cancelar</button>
-                        <button type="submit" class="add_btn">Salvar</button>
+
                     </div>
                 </form>
             </div>
         </div>
         </div>
 
-    <script>
-        function toggleForm(show) {
-            const container = document.querySelector('.screens-container');
-            if (show) {
-                container.classList.add('show-form');
-            } else {
-                container.classList.remove('show-form');
-            }
-        }
-    </script>
+    <script src="/static/js/script.js"></script>
 </body>
 </html>
