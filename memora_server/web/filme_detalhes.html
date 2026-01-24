@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>{{ filme.nome }} - Detalhes</title>
     <link rel="stylesheet" href="/static/style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
+    <link rel="icon" href="/static/memora.png">
 </head>
 <body>
     <header class="top-bar">
@@ -124,9 +124,41 @@
         </div>
 
 
-        <h1 style="color: #94a3b8;">Fotos:</h1>
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; margin-top: 40px; margin-bottom: 20px;">
+            <h1 style="color: #94a3b8; margin: 0;">Galeria do Evento</h1>
 
-        <form action="/filmes/remove-plan/{{ filme.id }}" method="post" onsubmit="return Remocao('filme')">
+            <form action="/filmes/{{ filme.id }}/adicionar-foto" method="post" enctype="multipart/form-data" id="form-add-foto">
+                <label for="input-add-foto" class="btn-add-photo" title="Adicionar nova foto">
+                    + Adicionar Foto
+                </label>
+                <input type="file" name="arquivo" id="input-add-foto" accept="image/*" style="display: none;" onchange="document.getElementById('form-add-foto').submit()">
+            </form>
+        </div>
+
+        {% if fotos %}
+            <div class="gallery-grid">
+                {% for foto in fotos %}
+                    <div class="photo-card">
+                        <img src="/static/{{ foto.caminho_foto }}"
+                             class="gallery-img"
+                             onclick="abrirLightbox('/static/{{ foto.caminho_foto }}')">
+
+                        <form action="/fotos/remover/{{ foto.id }}" method="post" onsubmit="return confirm('Apagar esta foto?')">
+                            <button type="submit" class="btn-delete-photo">×</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: #64748b; font-style: italic;">Nenhuma foto registrada... Tire uma selfie com a pipoca! 🍿</p>
+        {% endif %}
+
+        <div id="lightbox" class="lightbox-overlay" onclick="fecharLightbox()">
+            <span class="lightbox-close">&times;</span>
+            <img id="lightbox-img" src="">
+        </div>
+
+        <form action="/filmes/remove-plan/{{ filme.id }}" method="post" onsubmit="return confirmarRemocao('filme')">
             <div class="action-footer">
                 <button type="submit" class="btn-delete" style="width: 100%;">
                     {{ 'Deletar Memórias' if filme.assistido else 'Cancelar Plano' }}

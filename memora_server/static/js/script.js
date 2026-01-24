@@ -61,3 +61,20 @@ document.getElementById('modal-nota-overlay').addEventListener('click', function
         fecharModalNota();
     }
 });
+
+// Função para abrir o Lightbox
+function abrirLightbox(caminhoImagem) {
+    const lightbox = document.getElementById('lightbox');
+    const img = document.getElementById('lightbox-img');
+
+    // Define a imagem que foi clicada
+    img.src = caminhoImagem;
+
+    // Mostra o overlay
+    lightbox.style.display = 'flex';
+}
+
+// Função para fechar (clicando no fundo ou no X)
+function fecharLightbox() {
+    document.getElementById('lightbox').style.display = 'none';
+}

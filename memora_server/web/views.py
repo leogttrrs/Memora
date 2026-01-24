@@ -178,23 +178,37 @@ def desmarcar_assistido(filme_id:int):
 @router.get("/filmes/{filme_id}")
 def read_filme_detalhe(request: Request, filme_id: int):
     filme_encontrado = None
+    lista_fotos = []
 
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
         cursor.execute("SELECT * FROM filmes WHERE id = %s", (filme_id,))
-        dados = cursor.fetchone()
+        dados_filme = cursor.fetchone()
 
-        if dados:
+        if dados_filme:
+            cursor.execute("SELECT * FROM fotos_filme WHERE filme_id = %s ORDER BY data_upload DESC", (filme_id,))
+            dados_fotos = cursor.fetchall()
+
+            for foto in dados_fotos:
+                lista_fotos.append({
+                    "id": foto[0],
+                    "filme_id": foto[1],
+                    "caminho_foto": foto[2],
+                    "data_upload": foto[3]
+                })
+
             filme_encontrado = {
-                "id": dados[0],
-                "nome": dados[1],
-                "nota": dados[2],
-                "assistido": dados[3],
-                "caminho_imagem": dados[4],
-                "comentarios": dados[5],
+                "id": dados_filme[0],
+                "nome": dados_filme[1],
+                "nota": dados_filme[2],
+                "assistido": dados_filme[3],
+                "caminho_imagem": dados_filme[4],
+                "comentarios": dados_filme[5],
             }
+
+            print(lista_fotos)
 
         cursor.close()
         conn.close()
@@ -211,7 +225,7 @@ def read_filme_detalhe(request: Request, filme_id: int):
 
     return templates.TemplateResponse(
         "filme_detalhes.html",
-        {"request": request,"filme": filme_encontrado}
+        {"request": request,"filme": filme_encontrado, "fotos": lista_fotos}
     )
 
 @router.post("/filmes/remove-plan/{filme_id}")
@@ -268,6 +282,63 @@ def alterar_nota_filme(request: Request, filme_id, nota: int = Form(...)):
         print(f"Erro ao salvar: {e}")
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
+
+
+@router.post("/filmes/{filme_id}/adicionar-foto")
+def adicionar_foto(filme_id: int, arquivo: UploadFile = File(...)):
+    if arquivo.content_type not in ["image/jpeg", "image/png", "image/webp", "image/jpg"]:
+        return RedirectResponse(url=f"/filmes/{filme_id}?erro=arquivo_invalido", status_code=303)
+
+    try:
+        extensao = arquivo.filename.split(".")[-1]
+        nome_novo = f"{uuid.uuid4()}.{extensao}"
+        caminho_relativo = f"uploads/{nome_novo}"
+
+        caminho_absoluto = Path("static") / caminho_relativo
+        with open(caminho_absoluto, "wb") as buffer:
+            shutil.copyfileobj(arquivo.file, buffer)
+
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO fotos_filme (filme_id, caminho_foto) VALUES (%s, %s)",
+            (filme_id, caminho_relativo)
+        )
+        conn.commit()
+        conn.close()
+
+    except Exception as e:
+        print(f"Erro ao salvar foto: {e}")
+
+    return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
+
+
+@router.post("/fotos/remover/{foto_id}")
+def remover_foto(foto_id: int):
+    print(foto_id)
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT caminho_foto, filme_id FROM fotos_filme WHERE id = %s", (foto_id,))
+        row = cursor.fetchone()
+
+        if row:
+            caminho_arquivo = Path("static") / row[0]
+            filme_id = row[1]
+
+            if os.path.exists(caminho_arquivo):
+                os.remove(caminho_arquivo)
+
+            cursor.execute("DELETE FROM fotos_filme WHERE id = %s", (foto_id,))
+            conn.commit()
+
+            conn.close()
+            return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
+
+    except Exception as e:
+        print(f"Erro ao deletar foto: {e}")
+        return RedirectResponse(url="/filmes", status_code=303)
 
 @router.get("/series", response_class=HTMLResponse)
 def read_series():

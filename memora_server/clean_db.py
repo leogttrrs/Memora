@@ -1,30 +1,31 @@
 from core.database import get_connection
 
-
-def remover_filmes():
+def apagar_tudo():
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("DROP TABLE IF EXISTS filmes")
+        print("💣 Iniciando destruição das tabelas...")
 
-        # Opção B: (Se quiser zerar tudo de uma vez)
-        # cursor.execute("DELETE FROM filmes")
+        # O comando CASCADE garante que, se existirem dependências, elas somem junto.
+        # Estamos apagando as duas tabelas de uma vez.
+        cursor.execute("DROP TABLE IF EXISTS fotos_filme, filmes CASCADE;")
 
         conn.commit()
-        linhas_afetadas = cursor.rowcount
-
         cursor.close()
         conn.close()
 
-        if linhas_afetadas > 0:
-            print(f"Sucesso! {linhas_afetadas} filme(s) removido(s).")
-        else:
-            print("Nenhum filme encontrado para remover.")
+        print("✅ Sucesso! As tabelas 'filmes' e 'fotos_filme' foram apagadas do mapa.")
+        print("Agora você precisa rodar o script de criar tabelas novamente para usar o sistema.")
 
     except Exception as e:
-        print(f"Erro ao limpar banco: {e}")
+        print(f"❌ Erro ao apagar tabelas: {e}")
 
 
 if __name__ == "__main__":
-    remover_filmes()
+    # Adicionei uma confirmação de segurança pra você não rodar sem querer
+    confirmacao = input("Tem certeza que quer apagar TODO o banco de dados? (s/n): ")
+    if confirmacao.lower() == 's':
+        apagar_tudo()
+    else:
+        print("Operação cancelada.")

@@ -836,4 +836,112 @@ body {
     box-shadow: 0 6px 20px rgba(250, 204, 21, 0.6);
 }
 
+/* --- Botão de Adicionar Foto --- */
+.btn-add-photo {
+    background-color: transparent;
+    border: 1px dashed #38bdf8;
+    color: #38bdf8;
+    padding: 5px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+.btn-add-photo:hover {
+    background-color: rgba(56, 189, 248, 0.1);
+}
 
+/* --- Grade da Galeria --- */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Responsivo automático */
+    gap: 15px;
+    max-width: 800px;
+    margin: 0 auto 40px auto;
+}
+
+/* --- O Cartão da Foto --- */
+.photo-card {
+    position: relative; /* Para posicionar o botão X absoluto */
+    aspect-ratio: 1 / 1; /* Força ser quadrado */
+    overflow: hidden;
+    border-radius: 12px;
+    border: 2px solid #334155;
+    transition: transform 0.2s;
+}
+
+.photo-card:hover {
+    transform: scale(1.03);
+    border-color: #cbd5e1;
+}
+
+/* A Imagem dentro do quadrado */
+.gallery-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Corta a imagem para preencher o quadrado sem esticar */
+    cursor: pointer;
+}
+
+/* --- Botão de Deletar Foto (X) --- */
+.btn-delete-photo {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #ef4444;
+    border: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;     /* Centraliza o X */
+    align-items: center;
+    justify-content: center;
+    opacity: 0;        /* Escondido por padrão */
+    transition: opacity 0.2s;
+}
+
+/* Só mostra o X quando passa o mouse na foto */
+.photo-card:hover .btn-delete-photo {
+    opacity: 1;
+}
+.btn-delete-photo:hover {
+    background-color: #ef4444;
+    color: white;
+}
+
+/* --- LIGHTBOX (Tela Cheia) --- */
+.lightbox-overlay {
+    display: none; /* Escondido */
+    position: fixed;
+    z-index: 3000; /* Acima de tudo */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out; /* Ícone de diminuir zoom */
+    backdrop-filter: blur(5px);
+}
+
+.lightbox-overlay img {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 8px;
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    cursor: default; /* Clicar na imagem não fecha (opcional) */
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+}
