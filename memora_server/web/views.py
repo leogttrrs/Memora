@@ -139,6 +139,42 @@ def update_filme_capa(
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
 
+@router.post("/filmes/update-comentario/{filme_id}")
+def update_comentario_filme(filme_id:int, comentario: str = Form(default="")):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE filmes SET comentario = %s WHERE id = %s",
+            (comentario, filme_id)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao atualizar comentario: {e}")
+
+    return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
+
+@router.get("/filmes/desmarcar-assistido/{filme_id}")
+def desmarcar_assistido(filme_id:int):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE filmes SET assistido = false, nota = null WHERE id = %s",
+            (filme_id,)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao atualizar assistido: {e}")
+
+    return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
+
 @router.get("/filmes/{filme_id}")
 def read_filme_detalhe(request: Request, filme_id: int):
     filme_encontrado = None
@@ -156,7 +192,8 @@ def read_filme_detalhe(request: Request, filme_id: int):
                 "nome": dados[1],
                 "nota": dados[2],
                 "assistido": dados[3],
-                "caminho_imagem": dados[4]
+                "caminho_imagem": dados[4],
+                "comentarios": dados[5],
             }
 
         cursor.close()

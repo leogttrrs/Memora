@@ -2,6 +2,10 @@ function confirmarRemocao(item = "plano") {
     return confirm(`Tem certeza de que deseja apagar este ${item}?`);
 }
 
+function confirmarUndo(item = "plano") {
+    return confirm(`Tem certeza de que quer mover o/a ${item} para a lista de planejados?`)
+}
+
 function atualizarNomeArquivo(input) {
     const textoElemento = document.getElementById('texto-arquivo');
 

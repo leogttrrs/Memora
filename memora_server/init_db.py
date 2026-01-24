@@ -20,6 +20,8 @@ def criar_tabelas():
 
         cursor.execute("ALTER TABLE filmes ADD COLUMN imagem_capa VARCHAR(255);")
 
+        cursor.execute("ALTER TABLE filmes ADD COLUMN comentario TEXT;")
+
         conn.commit()
         cursor.close()
         conn.close()

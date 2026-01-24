@@ -15,3 +15,5 @@ Thumbs.db
 # Ignore IDEs
 .vscode/
 .idea/
+
+/memora_server/static/uploads

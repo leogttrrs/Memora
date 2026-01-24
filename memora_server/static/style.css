@@ -100,12 +100,18 @@ body {
     transition: all 0.3s ease;
 }
 
-.alter-btn{
-    margin-top: 20px;
+.alter-btn {
+    /* Estrutura para ficar igual ao outro */
+    display: inline-flex;  /* Fundamental para aceitar width/height */
+    align-items: center;   /* Centraliza verticalmente */
+    justify-content: center; /* Centraliza horizontalmente */
+    width: 230px;          /* Largura fixa igual */
+    height: 54px;          /* Altura fixa igual */
 
-    /* Resto das configurações iguais... */
+    margin-top: 20px;
     background-color: #38bdf8;
     color: #0f172a;
+
     font-family: inherit;
     font-weight: 700;
     font-size: 1rem;
@@ -113,16 +119,16 @@ body {
     letter-spacing: 1px;
     border: none;
     border-radius: 50px;
-    padding: 12px 24px;
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
     transition: all 0.3s ease;
+    text-decoration: none; /* Caso use <a> aqui também */
 }
 
 .alter-btn:hover {
-    background-color: #7dd3fc; /* Fica um pouco mais claro */
-    transform: translateY(-3px); /* Sobe um pouquinho */
-    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6); /* Sombra aumenta */
+    background-color: #7dd3fc;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6);
 }
 
 .action-area {
@@ -741,6 +747,93 @@ body {
 @keyframes modalPop {
     from { transform: scale(0.8); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
+}
+
+/* Container da área de comentários */
+.comments-section {
+    width: 100%;
+    max-width: 600px; /* Limita a largura para não ficar muito esticado */
+    margin: 0 auto;   /* Centraliza na tela */
+    text-align: left; /* Texto digita da esquerda pra direita */
+}
+
+/* O Estilo do Textarea (Bloco de Notas) */
+.comment-box {
+    width: 100%;
+    background-color: #0F172A; /* Fundo bem escuro (Slate 900) */
+    color: #cbd5e1;            /* Texto cinza claro */
+    border: 2px solid #334155;
+    border-radius: 12px;
+    padding: 15px;
+    font-size: 1rem;
+    font-family: inherit;      /* Usa a mesma fonte do site */
+    resize: vertical;          /* Permite o usuário aumentar a altura se quiser */
+    outline: none;
+    transition: all 0.3s ease;
+    line-height: 1.5;
+}
+
+/* Quando clica para digitar */
+.comment-box:focus {
+    border-color: #38bdf8;        /* Borda azul */
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.1);
+}
+
+/* O botão de salvar comentário */
+.btn-save-comment {
+    background-color: #334155;
+    color: #fff;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-save-comment:hover {
+    background-color: #38bdf8; /* Fica azul no hover */
+    color: #0F172A;
+}
+
+.movie-edit-options {
+    display: flex;
+    align-items: center;     /* Alinha verticalmente no centro */
+    justify-content: center; /* Centraliza os dois botões na tela */
+    gap: 15px;               /* Espaço entre os botões */
+    margin-top: 25px;        /* Espaço acima do bloco todo */
+    flex-wrap: wrap;         /* Se a tela for muito pequena, um cai pra baixo do outro */
+}
+
+.unmark-btn {
+    /* Copiando a estrutura exata do azul */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 230px;          /* Largura fixa igual */
+    height: 54px;          /* Altura fixa igual */
+
+    margin-top: 20px;
+    background-color: #facc15; /* Amarelo */
+    color: #0f172a;
+
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(250, 204, 21, 0.4);
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.unmark-btn:hover {
+    background-color: #fde047;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(250, 204, 21, 0.6);
 }
 
 
