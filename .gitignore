@@ -17,3 +17,5 @@ Thumbs.db
 .idea/
 
 /memora_server/static/uploads
+
+/memora_server/db_scripts.py

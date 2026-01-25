@@ -13,8 +13,34 @@ def criar_tabelas():
             CREATE TABLE IF NOT EXISTS filmes (
                 id SERIAL PRIMARY KEY,
                 nome VARCHAR(255) NOT NULL,
-                nota INT CHECK (nota >= 0 AND nota <= 10),
+                nota INT CHECK (nota >= 1 AND nota <= 10),
                 assistido BOOLEAN DEFAULT FALSE
+            );
+        """)
+
+        print("Verificando tabela 'series'...")
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS series (
+                id SERIAL PRIMARY KEY,
+                nome VARCHAR(255) NOT NULL,
+                nota_geral INT CHECK (nota_geral >= 1 AND nota_geral <= 10) DEFAULT 5,
+                assistido_completo BOOLEAN DEFAULT FALSE,
+                imagem_capa VARCHAR(255),
+                comentario TEXT -- <--- TIREI A VÍRGULA DAQUI
+            );
+        """)
+
+        print("Verificando tabela 'temporadas'...")
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS temporadas (
+                id SERIAL PRIMARY KEY,
+                serie_id INT NOT NULL,
+                numero_temporada INT NOT NULL,
+                nota INT CHECK (nota >= 0 AND nota <= 10),
+                assistido BOOLEAN DEFAULT FALSE,
+                comentario TEXT,
+                FOREIGN KEY (serie_id) REFERENCES series(id) ON DELETE CASCADE,
+                UNIQUE (serie_id, numero_temporada) -- <--- SUGESTÃO: IMPEDE DUPLICIDADE
             );
         """)
 
@@ -37,6 +63,28 @@ def criar_tabelas():
                 FOREIGN KEY (filme_id) REFERENCES filmes(id) ON DELETE CASCADE
             );
         """)
+
+        print("Verificando tabela 'fotos_serie'...")
+        cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS fotos_serie (
+                        id SERIAL PRIMARY KEY,
+                        serie_id INT NOT NULL,
+                        caminho_foto VARCHAR(255) NOT NULL,
+                        data_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (serie_id) REFERENCES series(id) ON DELETE CASCADE
+                    );
+                """)
+
+        print("Verificando tabela 'fotos_temporada'...")
+        cursor.execute("""
+                            CREATE TABLE IF NOT EXISTS fotos_temporada (
+                                id SERIAL PRIMARY KEY,
+                                temporada_id INT NOT NULL,
+                                caminho_foto VARCHAR(255) NOT NULL,
+                                data_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                FOREIGN KEY (temporada_id) REFERENCES temporadas(id) ON DELETE CASCADE
+                            );
+                        """)
 
         conn.commit()
         cursor.close()

@@ -3,19 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nossas Séries - Memora</title>
-    <link rel="stylesheet" href="../../static/css/style.css">
+    <title>Memora - Séries</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/memora.png">
 </head>
-<body>
+<body style="overflow-x: hidden;">
     <header class="top-bar">
         <div style="position: absolute; left: 20px;">
             <a href="/" style="color: #38bdf8; text-decoration: none;">⬅ Voltar</a>
         </div>
-        <h1>Séries - Memora</h1>
+        <h1>Memora</h1>
     </header>
+    <div id="alerta-erro" style="display: none; background: #ef4444; color: white; padding: 15px; text-align: center; margin: 10px;">
+        ❌ <strong>Erro:</strong> Apenas arquivos de imagem (JPG, PNG) são permitidos!
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('erro') === 'tipo_invalido') {
+            document.getElementById('alerta-erro').style.display = 'block';
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    </script>
 
-    <main class="container">
-        <p style="text-align: center;">Aqui entrará a lista de séries...</p>
-    </main>
+    <div class="screens-container">
+
+        <div id="main-view" class="screen">
+
+            <div class="section-title">
+                <h1>Séries</h1>
+            </div>
+
+            <div class="lists-wrapper">
+                <div class="list-column">
+                    <div class="title_todo"><h2>Iniciadas:</h2></div>
+                    <div class="movie-list-container">
+                        {% if series_planejadas %}
+                            {% for serie in series_planejadas %}
+                                <a href="/series/{{ serie.id }}" class="movie-item">
+                                    <span>{{ serie.nome }}</span>
+                                    <span style="font-size: 0.8rem; color: #64748b;">{{serie.porcentagem}}</span>
+                                    {% if serie.nota >= 8 %}
+                                        <span class="rating-badge rating-high">★ {{ serie.nota }}</span>
+                                    {% elif serie.nota >= 5 %}
+                                        <span class="rating-badge rating-mid">★ {{ serie.nota }}</span>
+                                    {% else %}
+                                        <span class="rating-badge rating-low">★ {{ serie.nota }}</span>
+                                    {% endif %}
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <p>Nenhum plano encontrado...</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="list-column">
+                    <div class="title_todo"><h2>Terminadas:</h2></div>
+                    <div class="movie-list-container">
+                        {% if series_assistidas %}
+                            {% for serie in series_assistidas %}
+                                <a href="/series/{{ serie.id }}" class="movie-item">
+                                    <span>{{ serie.nome }}</span>
+                                    <span>{{ serie.porcentagem }}</span>
+                                    {% if serie.nota >= 8 %}
+                                        <span class="rating-badge rating-high">★ {{ serie.nota }}</span>
+                                    {% elif serie.nota >= 5 %}
+                                        <span class="rating-badge rating-mid">★ {{ serie.nota }}</span>
+                                    {% else %}
+                                        <span class="rating-badge rating-low">★ {{ serie.nota }}</span>
+                                    {% endif %}
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <p>Nenhuma série completa...</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-area">
+                <button class="add-btn" onclick="toggleForm(true)">
+                    Adicionar Nova Série
+                </button>
+            </div>
+        </div>
+        <div id="form-view" class="screen form-screen">
+            <div class="form-card">
+                <h2>Nova Série</h2>
+                <p>O que vamos assistir?</p>
+
+                <form action="/series/novo" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label>Nome da Série</label>
+                        <input type="text" name="nome_serie" required autocomplete="off">
+                    </div>
+
+                    <div class="form-group" style="margin-top:15px">
+                        <label>Capa da Série (Opcional)</label>
+                        <div class="custom-file-box" id="file-box">
+
+                            <input type="file" name="imagem" id="real-input" accept="image/*" onchange="atualizarInput(this)">
+
+                            <div class="visual-layer">
+                                <span class="custom-text" id="file-text">Selecione uma imagem...</span>
+                                <span class="custom-btn">Escolher Arquivo</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top:15px">
+                        <label>Quantidade de temporadas</label>
+                        <input class = "input-nota" type="number" name="qtd_temporadas" required min="1" max="50" value="1">
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="add-btn">Salvar</button>
+                        <button type="button" class="btn-cancel" onclick="toggleForm(false)">Cancelar</button>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+        </div>
+
+    <script src="/static/js/script.js"></script>
 </body>
 </html>

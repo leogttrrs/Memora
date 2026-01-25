@@ -142,7 +142,7 @@
                              class="gallery-img"
                              onclick="abrirLightbox('/static/{{ foto.caminho_foto }}')">
 
-                        <form action="/fotos/remover/{{ foto.id }}" method="post" onsubmit="return confirm('Apagar esta foto?')">
+                        <form action="/filmes/fotos/remover/{{ foto.id }}" method="post" onsubmit="return confirm('Apagar esta foto?')">
                             <button type="submit" class="btn-delete-photo">×</button>
                         </form>
                     </div>
@@ -157,7 +157,7 @@
             <img id="lightbox-img" src="">
         </div>
 
-        <form action="/filmes/remove-plan/{{ filme.id }}" method="post" onsubmit="return confirmarRemocao('filme')">
+        <form action="/filmes/remove-filme/{{ filme.id }}" method="post" onsubmit="return confirmarRemocao('filme')">
             <div class="action-footer">
                 <button type="submit" class="btn-delete" style="width: 100%;">
                     {{ 'Deletar Memórias' if filme.assistido else 'Cancelar Plano' }}

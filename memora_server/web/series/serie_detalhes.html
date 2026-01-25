@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ serie.nome }} - Detalhes</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/memora.png">
+</head>
+<body>
+    <header class="top-bar">
+        <div style="position: absolute; left: 20px;">
+            <a href="/series" style="color: #38bdf8; text-decoration: none;">⬅ Voltar</a>
+        </div>
+        <h1>Memora</h1>
+    </header>
+
+    <div class="container" style="text-align: center; margin-top: 50px;">
+        <h1 style="font-size: 3rem; color: #fff;">{{ serie.nome }}</h1>
+        <div class="movie-cover-container">
+            <form action="/series/{{ serie.id }}/update-capa" method="post" enctype="multipart/form-data" id="form-capa">
+
+                <label for="input-trocar-capa" class="cover-wrapper" title="Clique para alterar a capa">
+
+                    <input type="file" name="imagem" id="input-trocar-capa" accept="image/*" style="display: none;" onchange="document.getElementById('form-capa').submit()">
+
+                    {% if serie.caminho_imagem %}
+                        {% if serie.caminho_imagem.startswith('http') %}
+                            <img src="{{ serie.caminho_imagem }}" class="movie-cover">
+                        {% else %}
+                            <img src="/static/{{ serie.caminho_imagem }}" class="movie-cover">
+                        {% endif %}
+                    {% else %}
+                        <img src="/static/default_cover.png" alt="Sem capa" class="movie-cover generic">
+                    {% endif %}
+
+                    <div class="edit-overlay">
+                        <span>📷 Alterar Capa</span>
+                    </div>
+
+                </label>
+            </form>
+        </div>
+
+        <div style="margin: 30px 0;">
+            <div style="margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <h2>Sua Nota Geral:</h2>
+                {% if serie.nota >= 8 %}
+                    <span class="rating-badge rating-high" style="font-size: 1.2rem;">★ {{ serie.nota }}</span>
+                {% elif serie.nota >= 5 %}
+                    <span class="rating-badge rating-mid" style="font-size: 1.2rem;">★ {{ serie.nota }}</span>
+                {% else %}
+                        <span class="rating-badge rating-low" style="font-size: 1.2rem;">★ {{ serie.nota }}</span>
+                {% endif %}
+            </div>
+
+            <div class="movie-edit-options">
+                <button type="button" class="alter-btn" onclick="abrirModalNota()">
+                    ⭐ Alterar nota
+                </button>
+            </div>
+
+
+            <div id="modal-nota-overlay" class="modal-overlay" style="display: none;">
+                <div class="modal-box">
+                    <h3>Nova Nota</h3>
+                    <p style="color: #94a3b8; font-size: 0.9rem;">Dê uma nota de 0 a 10</p>
+
+                    <form action="/series/alterar-nota/{{ serie.id }}" method="post">
+
+                        <div style="margin: 20px 0;">
+                            <input type="number" name="nota" min="1" max="10" class="input-nota" required placeholder="0-10" value="{{ serie.nota }}">
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button" class="btn-cancel" onclick="fecharModalNota()">Cancelar</button>
+                            <button type="submit" class="btn-confirm">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="seasons-wrapper">
+            <h1 style="color: #94a3b8; font-size: 1.5rem; margin-bottom: 15px;">Temporadas:</h1>
+
+            <div class="seasons-grid">
+                {% for temporada in dados_temporadas %}
+                    <a href="/series/{{ serie.id }}/temporada/{{ temporada.id }}"
+                       class="season-btn {{ 'watched' if temporada.assistido else '' }}"
+                       title="Ver detalhes da Temporada {{ temporada.numero_temporada }}">
+
+                        {{ temporada.numero_temporada }}º
+
+                        {% if temporada.assistido %}
+                            <span class="check-icon">✓</span>
+                            <span class="season-rate-badge">{{temporada.nota}}</span>
+                        {% endif %}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <h1 style="color: #94a3b8; margin-bottom: 10px;">Comentários da série:</h1>
+
+        <div class="comments-section">
+            <form action="/series/update-comentario/{{ serie.id }}" method="post">
+
+                <textarea
+                    name="comentario"
+                    class="comment-box"
+                    rows="5"
+                >{{ serie.comentarios or "" }}</textarea>
+
+                <div style="text-align: right; margin-top: 10px;">
+                    <button type="submit" class="btn-save-comment">
+                        💾 Salvar Anotações
+                    </button>
+                </div>
+            </form>
+        </div>
+
+
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; margin-top: 40px; margin-bottom: 20px;">
+            <h1 style="color: #94a3b8; margin: 0;">Galeria do Evento</h1>
+
+            <form action="/series/{{ serie.id }}/adicionar-foto" method="post" enctype="multipart/form-data" id="form-add-foto">
+                <label for="input-add-foto" class="btn-add-photo" title="Adicionar nova foto">
+                    + Adicionar foto
+                </label>
+                <input type="file" name="arquivo" id="input-add-foto" accept="image/*" style="display: none;" onchange="document.getElementById('form-add-foto').submit()">
+            </form>
+        </div>
+
+        {% if fotos %}
+            <div class="gallery-grid">
+                {% for foto in fotos %}
+                    <div class="photo-card">
+                        <img src="/static/{{ foto.caminho_foto}}"
+                             class="gallery-img"
+                             onclick="abrirLightbox('/static/{{ foto.caminho_foto }}')">
+
+                        <form action="/series/fotos/remover/{{ foto.id }}" method="post" onsubmit="return confirm('Apagar esta foto?')">
+                            <button type="submit" class="btn-delete-photo">×</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: #64748b; font-style: italic; margin-top: 50px;">Nenhuma foto registrada... Tire uma selfie com a pipoca! 🍿</p>
+        {% endif %}
+
+        <div id="lightbox" class="lightbox-overlay" onclick="fecharLightbox()">
+            <span class="lightbox-close">&times;</span>
+            <img id="lightbox-img" src="">
+        </div>
+
+        <form action="/series/remove-serie/{{ serie.id }}" method="post" onsubmit="return confirmarRemocao('serie')">
+            <div class="action-footer">
+                <button type="submit" class="btn-delete" style="width: 100%;">
+                    {{ 'Deletar Memórias' if serie.assistido else 'Cancelar Plano' }}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="/static/js/script.js"></script>
+</body>
+</html>

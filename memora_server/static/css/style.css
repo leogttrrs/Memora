@@ -945,3 +945,103 @@ body {
     font-weight: bold;
     cursor: pointer;
 }
+
+/* Container principal para dar espaçamento */
+.seasons-wrapper {
+    margin: 30px auto;
+    max-width: 600px; /* Limita a largura pra não ficar gigante em telas wide */
+    text-align: left;
+}
+
+/* O GRID MÁGICO */
+.seasons-grid {
+    display: grid;
+    /* Aqui está a regra: 5 colunas de tamanho igual (1 fraction) */
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px; /* Espaço entre os botões */
+}
+
+/* O Estilo do Botão da Temporada */
+.season-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    background-color: #1e293b; /* Cor escura padrão */
+    color: #cbd5e1;
+    border: 2px solid #334155;
+    border-radius: 12px;
+
+    height: 60px; /* Altura fixa para ficarem quadrados/retangulares bonitos */
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.2rem;
+    transition: all 0.2s ease;
+    position: relative; /* Para posicionar o check */
+}
+
+/* Efeito Hover (Mouse em cima) */
+.season-btn:hover {
+    background-color: #38bdf8; /* Azul claro */
+    color: #0f172a;            /* Texto escuro */
+    border-color: #38bdf8;
+    transform: translateY(-3px); /* Sobe um pouquinho */
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+}
+
+/* --- Variação: Se a temporada já foi assistida (Classe .watched) --- */
+.season-btn.watched {
+    background-color: #064e3b; /* Fundo esverdeado escuro */
+    border-color: #10b981;     /* Borda verde */
+    color: #34d399;            /* Texto verde claro */
+}
+
+.season-btn.watched:hover {
+    background-color: #10b981; /* Fica verde brilhante no hover */
+    color: #fff;
+}
+
+/* O ícone de checkzinho pequeno */
+.check-icon {
+    font-size: 0.6rem;
+    position: absolute;
+    top: 3px;
+    right: 5px;
+}
+
+/* --- Responsividade --- */
+/* Se a tela for de celular (muito pequena), muda para 3 por linha em vez de 5 */
+@media (max-width: 500px) {
+    .seasons-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* A "pílula" da nota */
+.season-rate-badge {
+    position: absolute;
+    bottom: 3px;         /* 3px da parte de baixo */
+    right: 3px;          /* 3px da direita */
+
+    background-color: rgba(0, 0, 0, 0.4); /* Fundo escuro translúcido para leitura */
+    color: #fff;
+    font-size: 0.7rem;   /* Fonte pequenininha */
+    font-weight: bold;
+
+    padding: 1px 6px;    /* Espaçamento interno */
+    border-radius: 8px;  /* Bordas redondas */
+
+    display: flex;       /* Ajuda a alinhar caso queira por ícone */
+    align-items: center;
+    pointer-events: none; /* O clique passa através dele e vai para o botão */
+}
+
+/* --- TOQUE DE MESTRE: A Estrelinha Automática --- */
+/* Isso adiciona uma estrela amarela antes do número via CSS */
+.season-rate-badge::before {
+    content: "★";       /* Caractere de estrela */
+    color: #facc15;     /* Amarelo ouro */
+    margin-right: 2px;  /* Espacinho entre a estrela e o número */
+    font-size: 0.6rem;
+}

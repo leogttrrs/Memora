@@ -9,7 +9,7 @@ def apagar_tudo():
 
         # O comando CASCADE garante que, se existirem dependências, elas somem junto.
         # Estamos apagando as duas tabelas de uma vez.
-        cursor.execute("DROP TABLE IF EXISTS fotos_filme, filmes CASCADE;")
+        cursor.execute("DROP TABLE IF EXISTS fotos_filme, filmes, fotos_serie, temporadas, series CASCADE;")
 
         conn.commit()
         cursor.close()
