@@ -139,6 +139,52 @@ def update_filme_capa(
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
 
+@router.post("/series/{serie_id}/update-capa")
+def update_serie_capa(
+        serie_id: int,
+        imagem: UploadFile = File(...)
+):
+    try:
+        print('OI')
+        caminho_imagem = None
+        TIPOS_VALIDOS = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
+        if imagem and imagem.filename:
+
+            if imagem.content_type not in TIPOS_VALIDOS:
+                return RedirectResponse(url="/series?erro=tipo_invalido", status_code=303)
+
+            extensao = imagem.filename.split(".")[-1]
+            nome_arquivo = f"{uuid.uuid4()}.{extensao}"
+
+            pasta_destino = Path("static/uploads")
+            pasta_destino.mkdir(parents=True, exist_ok=True)
+            caminho_final = pasta_destino / nome_arquivo
+
+            print(caminho_final)
+
+            with open(caminho_final, "wb") as buffer:
+                shutil.copyfileobj(imagem.file, buffer)
+
+            caminho_imagem = f"uploads/{nome_arquivo}"
+
+        if caminho_imagem:
+            conn = get_connection()
+            cursor = conn.cursor()
+
+            cursor.execute(
+                "UPDATE series SET imagem_capa = %s WHERE id = %s",
+                (caminho_imagem, serie_id)
+            )
+
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+    except Exception as e:
+        print(f"Erro ao atualizar capa: {e}")
+
+    return RedirectResponse(url=f"/series/{serie_id}", status_code=303)
+
 @router.post("/filmes/update-comentario/{filme_id}")
 def update_comentario_filme(filme_id:int, comentario: str = Form(default="")):
     try:
@@ -157,6 +203,25 @@ def update_comentario_filme(filme_id:int, comentario: str = Form(default="")):
         print(f"Erro ao atualizar comentario: {e}")
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
+
+@router.post("/series/{serie_id}/temporadas/update-comentario/{temporada_id}")
+def update_comentario_temporada(serie_id: int,temporada_id:int, comentario: str = Form(default="")):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE temporadas SET comentario = %s WHERE id = %s",
+            (comentario, temporada_id)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao atualizar comentario: {e}")
+
+    return RedirectResponse(url=f"/series/{serie_id}/temporada/{temporada_id}", status_code=303)
 
 @router.post("/series/update-comentario/{serie_id}")
 def update_comentario_filme(serie_id:int, comentario: str = Form(default="")):
@@ -193,6 +258,23 @@ def desmarcar_assistido(filme_id:int):
         print(f"Erro ao atualizar assistido: {e}")
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
+
+@router.get("/temporadas/desmarcar-assistido/{temporada_id}")
+def desmarcar_assistido(temporada_id:int):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE temporadas SET assistido = false, nota = null WHERE id = %s",
+            (temporada_id,)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao atualizar assistido: {e}")
+
+    return RedirectResponse(url=f"/temporadas/{temporada_id}", status_code=303)
 
 @router.get("/filmes/{filme_id}")
 def read_filme_detalhe(request: Request, filme_id: int):
@@ -279,6 +361,25 @@ def mark_as_watched_filme(request: Request, filme_id, nota: int = Form(...)):
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
 
+@router.post("/temporadas/mark-as-watched/{temporada_id}")
+def mark_as_watched_filme(request: Request, temporada_id, nota: int = Form(...)):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE temporadas SET assistido = true, nota = %s WHERE id = %s",
+            (nota, temporada_id)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    return RedirectResponse(url=f"/series", status_code=303)
+
 @router.post("/filmes/alterar-nota/{filme_id}")
 def alterar_nota_filme(request: Request, filme_id, nota: int = Form(...)):
     try:
@@ -300,9 +401,45 @@ def alterar_nota_filme(request: Request, filme_id, nota: int = Form(...)):
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
 
+@router.post("/series/{serie_id}/temporadas/alterar-nota/{temporada_id}")
+def alterar_nota_filme(request: Request,serie_id ,temporada_id, nota: int = Form(...)):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE temporadas SET nota = %s where id = %s", (nota, temporada_id)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    return RedirectResponse(url=f"/series/{serie_id}/temporada/{temporada_id}", status_code=303)
+
+@router.post("/series/alterar-nota/{serie_id}")
+def alterar_nota_filme(request: Request, serie_id, nota: int = Form(...)):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE series SET nota_geral = %s where id = %s", (nota, serie_id)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    return RedirectResponse(url=f"/series/{serie_id}", status_code=303)
+
 
 @router.post("/filmes/{filme_id}/adicionar-foto")
-def adicionar_foto(filme_id: int, arquivo: UploadFile = File(...)):
+def adicionar_foto_filme(filme_id: int, arquivo: UploadFile = File(...)):
     if arquivo.content_type not in ["image/jpeg", "image/png", "image/webp", "image/jpg"]:
         return RedirectResponse(url=f"/filmes/{filme_id}?erro=arquivo_invalido", status_code=303)
 
@@ -329,10 +466,44 @@ def adicionar_foto(filme_id: int, arquivo: UploadFile = File(...)):
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
 
+@router.post("/series/{serie_id}/temporadas/{temporada_id}/adicionar-foto")
+def adicionar_foto_temporada(serie_id: int,temporada_id: int, arquivo: UploadFile = File(...)):
+    if arquivo.content_type not in ["image/jpeg", "image/png", "image/webp", "image/jpg"]:
+        return RedirectResponse(url=f"/temporadas/{temporada_id}?erro=arquivo_invalido", status_code=303)
+
+    try:
+        extensao = arquivo.filename.split(".")[-1]
+        nome_novo = f"{uuid.uuid4()}.{extensao}"
+        caminho_relativo = f"uploads/{nome_novo}"
+
+        caminho_absoluto = Path("static") / caminho_relativo
+        with open(caminho_absoluto, "wb") as buffer:
+            shutil.copyfileobj(arquivo.file, buffer)
+
+            print(caminho_relativo)
+
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO fotos_temporada (temporada_id, caminho_foto) VALUES (%s, %s)",
+            (temporada_id, caminho_relativo)
+        )
+        cursor.execute(
+            "INSERT INTO fotos_serie (serie_id, caminho_foto) VALUES (%s, %s)",
+            (serie_id, caminho_relativo)
+        )
+        conn.commit()
+        conn.close()
+
+    except Exception as e:
+        print(f"Erro ao salvar foto: {e}")
+
+    return RedirectResponse(url=f"/series/{serie_id}/temporada/{temporada_id}", status_code=303)
+
 @router.post("/series/{serie_id}/adicionar-foto")
 def adicionar_foto(serie_id: int, arquivo: UploadFile = File(...)):
     if arquivo.content_type not in ["image/jpeg", "image/png", "image/webp", "image/jpg"]:
-        return RedirectResponse(url=f"/filmes/{serie_id}?erro=arquivo_invalido", status_code=303)
+        return RedirectResponse(url=f"/series/{serie_id}?erro=arquivo_invalido", status_code=303)
 
     try:
         extensao = arquivo.filename.split(".")[-1]
@@ -384,7 +555,40 @@ def remover_foto_filme(foto_id: int):
 
     except Exception as e:
         print(f"Erro ao deletar foto: {e}")
-        return RedirectResponse(url="/filmes", status_code=303)
+        return RedirectResponse(url="/series", status_code=303)
+
+
+@router.post("/temporadas/fotos/remover/{foto_id}")
+def remover_foto_temporada(foto_id: int):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # 1. Descobrir o caminho e o ID da temporada
+        cursor.execute("SELECT caminho_foto, temporada_id FROM fotos_temporada WHERE id = %s", (foto_id,))
+        row = cursor.fetchone()
+
+        if row:
+            caminho_relativo = row[0]
+            temporada_id = row[1]
+            caminho_arquivo = Path("static") / caminho_relativo
+
+            if os.path.exists(caminho_arquivo):
+                os.remove(caminho_arquivo)
+
+            cursor.execute("DELETE FROM fotos_temporada WHERE id = %s", (foto_id,))
+
+            cursor.execute("DELETE FROM fotos_serie WHERE caminho_foto = %s", (caminho_relativo,))
+
+            conn.commit()
+            conn.close()
+
+            return RedirectResponse(url="/series", status_code=303)
+
+    except Exception as e:
+        print(f"Erro ao deletar foto: {e}")
+        return RedirectResponse(url="/series", status_code=303)
+
 
 @router.post("/series/fotos/remover/{foto_id}")
 def remover_foto_serie(foto_id: int):
@@ -396,16 +600,18 @@ def remover_foto_serie(foto_id: int):
         row = cursor.fetchone()
 
         if row:
-            caminho_arquivo = Path("static") / row[0]
+            caminho_relativo = row[0]
             serie_id = row[1]
+            caminho_arquivo = Path("static") / caminho_relativo
 
             if os.path.exists(caminho_arquivo):
                 os.remove(caminho_arquivo)
 
             cursor.execute("DELETE FROM fotos_serie WHERE id = %s", (foto_id,))
+            cursor.execute("DELETE FROM fotos_temporada WHERE caminho_foto = %s", (caminho_relativo,))
             conn.commit()
-
             conn.close()
+
             return RedirectResponse(url=f"/series/{serie_id}", status_code=303)
 
     except Exception as e:
