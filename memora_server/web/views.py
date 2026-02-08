@@ -402,7 +402,7 @@ def alterar_nota_filme(request: Request, filme_id, nota: int = Form(...)):
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
 
 @router.post("/series/{serie_id}/temporadas/alterar-nota/{temporada_id}")
-def alterar_nota_filme(request: Request,serie_id ,temporada_id, nota: int = Form(...)):
+def alterar_nota_temporada(request: Request,serie_id ,temporada_id, nota: int = Form(...)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
@@ -410,6 +410,14 @@ def alterar_nota_filme(request: Request,serie_id ,temporada_id, nota: int = Form
         cursor.execute(
             "UPDATE temporadas SET nota = %s where id = %s", (nota, temporada_id)
         )
+
+        cursor.execute(
+            "SELECT temporadas from series WHERE id = %s", (serie_id,)
+        )
+
+        teste = cursor.fetchone()
+
+        print(teste)
 
         conn.commit()
         cursor.close()
