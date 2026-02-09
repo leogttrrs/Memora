@@ -145,7 +145,6 @@ def update_serie_capa(
         imagem: UploadFile = File(...)
 ):
     try:
-        print('OI')
         caminho_imagem = None
         TIPOS_VALIDOS = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
         if imagem and imagem.filename:
@@ -159,8 +158,6 @@ def update_serie_capa(
             pasta_destino = Path("static/uploads")
             pasta_destino.mkdir(parents=True, exist_ok=True)
             caminho_final = pasta_destino / nome_arquivo
-
-            print(caminho_final)
 
             with open(caminho_final, "wb") as buffer:
                 shutil.copyfileobj(imagem.file, buffer)
@@ -259,8 +256,8 @@ def desmarcar_assistido(filme_id:int):
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
 
-@router.get("/temporadas/desmarcar-assistido/{temporada_id}")
-def desmarcar_assistido(temporada_id:int):
+@router.get("/series/{serie_id}/temporadas/{temporada_id}/desmarcar-assistido")
+def desmarcar_assistido_temporada(temporada_id:int, serie_id:int):
     try:
         conn = get_connection()
         cursor = conn.cursor()
@@ -269,12 +266,15 @@ def desmarcar_assistido(temporada_id:int):
             (temporada_id,)
         )
         conn.commit()
+
+        ler_temporadas_e_definir_nota_serie(conn, cursor, serie_id)
+
         cursor.close()
         conn.close()
     except Exception as e:
         print(f"Erro ao atualizar assistido: {e}")
 
-    return RedirectResponse(url=f"/temporadas/{temporada_id}", status_code=303)
+    return RedirectResponse(url=f"/series/{serie_id}/temporada/{temporada_id}", status_code=303)
 
 @router.get("/filmes/{filme_id}")
 def read_filme_detalhe(request: Request, filme_id: int):
@@ -361,8 +361,8 @@ def mark_as_watched_filme(request: Request, filme_id, nota: int = Form(...)):
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
 
-@router.post("/temporadas/mark-as-watched/{temporada_id}")
-def mark_as_watched_filme(request: Request, temporada_id, nota: int = Form(...)):
+@router.post("/series/{serie_id}/temporadas/{temporada_id}/marcar-assistido")
+def mark_as_watched_temporada(request: Request,serie_id ,temporada_id, nota: int = Form(...)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
@@ -371,23 +371,22 @@ def mark_as_watched_filme(request: Request, temporada_id, nota: int = Form(...))
             "UPDATE temporadas SET assistido = true, nota = %s WHERE id = %s",
             (nota, temporada_id)
         )
-
         conn.commit()
+
+        ler_temporadas_e_definir_nota_serie(conn, cursor, serie_id)
+
         cursor.close()
         conn.close()
     except Exception as e:
         print(f"Erro ao salvar: {e}")
 
-    return RedirectResponse(url=f"/series", status_code=303)
+    return RedirectResponse(url=f"/series/{serie_id}/temporada/{temporada_id}", status_code=303)
 
 @router.post("/filmes/alterar-nota/{filme_id}")
 def alterar_nota_filme(request: Request, filme_id, nota: int = Form(...)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
-
-        print(filme_id)
-        print(nota)
 
         cursor.execute(
             "UPDATE filmes SET nota = %s where id = %s", (nota, filme_id)
@@ -410,16 +409,10 @@ def alterar_nota_temporada(request: Request,serie_id ,temporada_id, nota: int = 
         cursor.execute(
             "UPDATE temporadas SET nota = %s where id = %s", (nota, temporada_id)
         )
-
-        cursor.execute(
-            "SELECT temporadas from series WHERE id = %s", (serie_id,)
-        )
-
-        teste = cursor.fetchone()
-
-        print(teste)
-
         conn.commit()
+
+        ler_temporadas_e_definir_nota_serie(conn, cursor, serie_id)
+
         cursor.close()
         conn.close()
     except Exception as e:
@@ -488,7 +481,6 @@ def adicionar_foto_temporada(serie_id: int,temporada_id: int, arquivo: UploadFil
         with open(caminho_absoluto, "wb") as buffer:
             shutil.copyfileobj(arquivo.file, buffer)
 
-            print(caminho_relativo)
 
         conn = get_connection()
         cursor = conn.cursor()
@@ -540,7 +532,6 @@ def adicionar_foto(serie_id: int, arquivo: UploadFile = File(...)):
 
 @router.post("/filmes/fotos/remover/{foto_id}")
 def remover_foto_filme(foto_id: int):
-    print(foto_id)
     try:
         conn = get_connection()
         cursor = conn.cursor()
@@ -638,8 +629,6 @@ def read_series(request: Request):
         cursor.execute("SELECT * FROM series ORDER BY id DESC")
         series_dados = cursor.fetchall()
 
-        print(series_dados)
-
         for item in series_dados:
             serie_id = item[0]
             serie_nome = item[1]
@@ -691,7 +680,7 @@ def criar_serie(request: Request, nome_serie: str = Form(...), qtd_temporadas: i
 
             if imagem.content_type not in TIPOS_VALIDOS:
                 print(f"Arquivo rejeitado: {imagem.content_type}")
-                return RedirectResponse(url="/filmes", status_code=303)
+                return RedirectResponse(url="/series", status_code=303)
 
             extensao = imagem.filename.split(".")[-1]
             nome_arquivo = f"{uuid.uuid4()}.{extensao}"
@@ -714,8 +703,6 @@ def criar_serie(request: Request, nome_serie: str = Form(...), qtd_temporadas: i
         )
 
         serie_id = cursor.fetchone()[0]
-
-        print(serie_id)
 
         for i in range(1, qtd_temporadas + 1):
             cursor.execute(
@@ -781,8 +768,6 @@ def read_temporada(request: Request, temporada_id: int, serie_id: int):
                 "comentarios": dados_serie[5],
             }
 
-            print(temporada_encontrada)
-
     except Exception as e:
         print(f"Erro ao ler temporada: {e}")
 
@@ -842,7 +827,7 @@ def read_serie_detalhe(request: Request, serie_id: int):
         cursor.execute("SELECT * FROM series WHERE id = %s", (serie_id,))
         dados_serie = cursor.fetchone()
 
-        cursor.execute("SELECT * FROM temporadas WHERE serie_id = %s", (serie_id,))
+        cursor.execute("SELECT * FROM temporadas WHERE serie_id = %s ORDER BY numero_temporada", (serie_id,))
         dados_temporadas = cursor.fetchall()
 
         if dados_serie:
@@ -932,3 +917,30 @@ def read_viagens():
             return f.read()
     except FileNotFoundError:
         return "<h1>viagens.html não encontrado!</h1>"
+
+def ler_temporadas_e_definir_nota_serie(conn, cursor, serie_id):
+    cursor.execute(
+        "SELECT * FROM temporadas WHERE serie_id = %s", (serie_id,)
+    )
+
+    dados_temporadas_serie = cursor.fetchall()
+    num_temporadas_total = len(dados_temporadas_serie)
+    num_temporadas_contabilizadas = 0
+    nota_total = 0
+
+    for temporada in dados_temporadas_serie:
+        if temporada[3]:
+            num_temporadas_contabilizadas += 1
+            nota_total += temporada[3]
+
+    nota_geral_serie = round(nota_total / num_temporadas_contabilizadas)
+    serie_assistida = num_temporadas_total == num_temporadas_contabilizadas
+    print(f'Série assistida: {serie_assistida}')
+
+    cursor.execute(
+        "UPDATE series SET nota_geral = %s, assistido_completo = %s WHERE id = %s",
+        (nota_geral_serie, serie_assistida, serie_id)
+    )
+
+
+    conn.commit()

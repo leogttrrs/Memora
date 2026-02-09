@@ -41,14 +41,16 @@
                             {% for serie in series_planejadas %}
                                 <a href="/series/{{ serie.id }}" class="movie-item">
                                     <span>{{ serie.nome }}</span>
-                                    <span style="font-size: 0.8rem; color: #64748b;">{{serie.porcentagem}}</span>
-                                    {% if serie.nota >= 8 %}
-                                        <span class="rating-badge rating-high">★ {{ serie.nota }}</span>
-                                    {% elif serie.nota >= 5 %}
-                                        <span class="rating-badge rating-mid">★ {{ serie.nota }}</span>
-                                    {% else %}
-                                        <span class="rating-badge rating-low">★ {{ serie.nota }}</span>
-                                    {% endif %}
+                                        <span style="font-size: 0.8rem; color: #64748b;">{{serie.porcentagem}}</span>
+                                        {% if serie.nota %}
+                                            {% if serie.nota >= 8 %}
+                                                <span class="rating-badge rating-high">★ {{ serie.nota }}</span>
+                                            {% elif serie.nota >= 5 %}
+                                                <span class="rating-badge rating-mid">★ {{ serie.nota }}</span>
+                                            {% else %}
+                                                <span class="rating-badge rating-low">★ {{ serie.nota }}</span>
+                                            {% endif %}
+                                        {% endif %}
                                 </a>
                             {% endfor %}
                         {% else %}

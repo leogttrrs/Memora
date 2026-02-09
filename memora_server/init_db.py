@@ -23,7 +23,7 @@ def criar_tabelas():
             CREATE TABLE IF NOT EXISTS series (
                 id SERIAL PRIMARY KEY,
                 nome VARCHAR(255) NOT NULL,
-                nota_geral INT CHECK (nota_geral >= 1 AND nota_geral <= 10) DEFAULT 5,
+                nota_geral INT CHECK (nota_geral >= 1 AND nota_geral <= 10),
                 assistido_completo BOOLEAN DEFAULT FALSE,
                 imagem_capa VARCHAR(255),
                 comentario TEXT -- <--- TIREI A VÍRGULA DAQUI

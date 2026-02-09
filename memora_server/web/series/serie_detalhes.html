@@ -43,13 +43,15 @@
 
         <div style="margin: 30px 0;">
             <div style="margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                <h2>Sua Nota Geral:</h2>
-                {% if serie.nota >= 8 %}
-                    <span class="rating-badge rating-high" style="font-size: 1.2rem;">★ {{ serie.nota }}</span>
-                {% elif serie.nota >= 5 %}
-                    <span class="rating-badge rating-mid" style="font-size: 1.2rem;">★ {{ serie.nota }}</span>
-                {% else %}
-                        <span class="rating-badge rating-low" style="font-size: 1.2rem;">★ {{ serie.nota }}</span>
+                {% if serie.nota %}
+                    <h2>Sua Nota Geral:</h2>
+                    {% if serie.nota >= 8 %}
+                        <span class="rating-badge rating-high" style="font-size: 1.2rem;">★ {{ serie.nota }}</span>
+                    {% elif serie.nota >= 5 %}
+                        <span class="rating-badge rating-mid" style="font-size: 1.2rem;">★ {{ serie.nota }}</span>
+                    {% else %}
+                            <span class="rating-badge rating-low" style="font-size: 1.2rem;">★ {{ serie.nota }}</span>
+                    {% endif %}
                 {% endif %}
             </div>
 
@@ -114,7 +116,7 @@
 
 
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; margin-top: 40px; margin-bottom: 20px;">
-            <h1 style="color: #94a3b8; margin: 0;">Galeria do Evento</h1>
+            <h1 style="color: #94a3b8; margin: 0;">Galeria da Série</h1>
 
             <form action="/series/{{ serie.id }}/adicionar-foto" method="post" enctype="multipart/form-data" id="form-add-foto">
                 <label for="input-add-foto" class="btn-add-photo" title="Adicionar nova foto">

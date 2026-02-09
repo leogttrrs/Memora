@@ -45,7 +45,7 @@
                     <button type="button" class="alter-btn" onclick="abrirModalNota()">
                         ⭐ Alterar nota
                     </button>
-                    <a type="button" href="/temporadas/desmarcar-assistido/{{ temporada.id }}" class="unmark-btn" onclick="return confirmarUndo('temporada')">↩️ Não assisti</a>
+                    <a type="button" href="/series/{{ serie.id }}/temporadas/{{ temporada.id }}/desmarcar-assistido/" class="unmark-btn" onclick="return confirmarUndo('temporada')">↩️ Não assisti</a>
                 </div>
 
 
@@ -78,7 +78,7 @@
                 <div class="grade-form-container">
                     <p style="color: #cbd5e1; margin-bottom: 10px;">Já assistiu? Dê sua nota:</p>
 
-                    <form action="/temporadas/mark-as-watched/{{ temporada.id }}" method="post" style="display: flex; gap: 10px; justify-content: center; align-items: center;">
+                    <form action="/series/{{ serie.id }}/temporadas/{{ temporada.id }}/marcar-assistido" method="post" style="display: flex; gap: 10px; justify-content: center; align-items: center;">
 
                         <input type="number" name="nota" required min="1" max="10" placeholder="1-10" class="input-nota">
 
