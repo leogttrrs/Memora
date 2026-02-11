@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ jogo.nome }} - Detalhes</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/memora.png">
+</head>
+<body>
+    <header class="top-bar">
+        <div style="position: absolute; left: 20px;">
+            <a href="/jogos" style="color: #38bdf8; text-decoration: none;">⬅ Voltar</a>
+        </div>
+        <h1>Memora</h1>
+    </header>
+
+    <div class="container" style="text-align: center; margin-top: 50px;">
+        <h1 style="font-size: 3rem; color: #fff;">{{ jogo.nome }}</h1>
+        <div class="movie-cover-container">
+            <form action="/jogos/{{ jogo.id }}/update-capa" method="post" enctype="multipart/form-data" id="form-capa">
+
+                <label for="input-trocar-capa" class="cover-wrapper" title="Clique para alterar a capa">
+
+                    <input type="file" name="imagem" id="input-trocar-capa" accept="image/*" style="display: none;" onchange="document.getElementById('form-capa').submit()">
+
+                    {% if jogo.caminho_imagem %}
+                        {% if jogo.caminho_imagem.startswith('http') %}
+                            <img src="{{ jogo.caminho_imagem }}" class="movie-cover">
+                        {% else %}
+                            <img src="/static/{{ jogo.caminho_imagem }}" class="movie-cover">
+                        {% endif %}
+                    {% else %}
+                        <img src="/static/default_cover.png" alt="Sem capa" class="movie-cover generic">
+                    {% endif %}
+
+                    <div class="edit-overlay">
+                        <span>📷 Alterar Capa</span>
+                    </div>
+
+                </label>
+            </form>
+        </div>
+
+        <div style="margin: 30px 0;">
+            {% if jogo.finalizado %}
+                <div style="margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <h2>Sua Nota:</h2>
+                    {% if jogo.nota >= 8 %}
+                        <span class="rating-badge rating-high" style="font-size: 1.2rem;">★ {{ jogo.nota }}</span>
+                    {% elif jogo.nota >= 5 %}
+                        <span class="rating-badge rating-mid" style="font-size: 1.2rem;">★ {{ jogo.nota }}</span>
+                    {% else %}
+                            <span class="rating-badge rating-low" style="font-size: 1.2rem;">★ {{ jogo.nota }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="movie-edit-options">
+                    <button type="button" class="alter-btn" onclick="abrirModalNota()">
+                        ⭐ Alterar nota
+                    </button>
+                    <a type="button" href="/jogos/desmarcar-finalizado/{{ jogo.id }}" class="unmark-btn" onclick="return confirmarUndo('jogo')">↩️ Não Joguei</a>
+                </div>
+
+
+                <div id="modal-nota-overlay" class="modal-overlay" style="display: none;">
+                    <div class="modal-box">
+                        <h3>Nova Nota</h3>
+                        <p style="color: #94a3b8; font-size: 0.9rem;">Dê uma nota de 0 a 10</p>
+
+                        <form action="/jogos/alterar-nota/{{ jogo.id }}" method="post">
+
+                            <div style="margin: 20px 0;">
+                                <input type="number" name="nota" min="1" max="10" class="input-nota" required placeholder="0-10" value="{{ jogo.nota }}">
+                            </div>
+
+                            <div class="modal-actions">
+                                <button type="button" class="btn-cancel" onclick="fecharModalNota()">Cancelar</button>
+                                <button type="submit" class="btn-confirm">Salvar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            {% else %}
+                <div style="margin-bottom: 20px;">
+                    <span class="rating-badge" style="border: 1px solid #64748b; color: #94a3b8; background: transparent;">
+                        📅 Planejado
+                    </span>
+                </div>
+
+                <div class="grade-form-container">
+                    <p style="color: #cbd5e1; margin-bottom: 10px;">Já jogou? Dê sua nota:</p>
+
+                    <form action="/jogos/marcar-finalizado/{{ jogo.id }}" method="post" style="display: flex; gap: 10px; justify-content: center; align-items: center;">
+
+                        <input type="number" name="nota" required min="1" max="10" placeholder="1-10" class="input-nota">
+
+                        <button type="submit" class="btn-confirm">
+                            ✅ Marcar como finalizado
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+
+        <h1 style="color: #94a3b8; margin-bottom: 10px;">Comentários:</h1>
+
+        <div class="comments-section">
+            <form action="/jogos/update-comentario/{{ jogo.id }}" method="post">
+
+                <textarea
+                    name="comentario"
+                    class="comment-box"
+                    rows="5"
+                >{{ jogo.comentarios or "" }}</textarea>
+
+                <div style="text-align: right; margin-top: 10px;">
+                    <button type="submit" class="btn-save-comment">
+                        💾 Salvar Anotações
+                    </button>
+                </div>
+            </form>
+        </div>
+
+
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; margin-top: 40px; margin-bottom: 20px;">
+            <h1 style="color: #94a3b8; margin: 0;">Galeria do Evento</h1>
+
+            <form action="/jogos/{{ jogo.id }}/adicionar-foto" method="post" enctype="multipart/form-data" id="form-add-foto">
+                <label for="input-add-foto" class="btn-add-photo" title="Adicionar nova foto">
+                    + Adicionar Foto
+                </label>
+                <input type="file" name="arquivo" id="input-add-foto" accept="image/*" style="display: none;" onchange="document.getElementById('form-add-foto').submit()">
+            </form>
+        </div>
+
+        {% if fotos %}
+            <div class="gallery-grid">
+                {% for foto in fotos %}
+                    <div class="photo-card">
+                        <img src="/static/{{ foto.caminho_foto }}"
+                             class="gallery-img"
+                             onclick="abrirLightbox('/static/{{ foto.caminho_foto }}')">
+
+                        <form action="/jogos/fotos/remover/{{ foto.id }}" method="post" onsubmit="return confirm('Apagar esta foto?')">
+                            <button type="submit" class="btn-delete-photo">×</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: #64748b; font-style: italic; margin-top: 50px;">Nenhuma foto registrada...</p>
+        {% endif %}
+
+        <div id="lightbox" class="lightbox-overlay" onclick="fecharLightbox()">
+            <span class="lightbox-close">&times;</span>
+            <img id="lightbox-img" src="">
+        </div>
+
+        <form action="/jogos/remove-jogo/{{ jogo.id }}" method="post" onsubmit="return confirmarRemocao('jogo')">
+            <div class="action-footer">
+                <button type="submit" class="btn-delete" style="width: 100%;">
+                    {{ 'Deletar Memórias' if jogo.finalizado else 'Cancelar Plano' }}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="/static/js/script.js"></script>
+</body>
+</html>

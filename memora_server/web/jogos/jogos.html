@@ -3,19 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogos - Memora</title>
-    <link rel="stylesheet" href="../../static/css/style.css">
+    <title>Memora - jogos</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/memora.png">
 </head>
-<body>
+<body style="overflow-x: hidden;">
     <header class="top-bar">
         <div style="position: absolute; left: 20px;">
             <a href="/" style="color: #38bdf8; text-decoration: none;">⬅ Voltar</a>
         </div>
-        <h1>Jogos - Memora</h1>
+        <h1>Memora</h1>
     </header>
+    <div id="alerta-erro" style="display: none; background: #ef4444; color: white; padding: 15px; text-align: center; margin: 10px;">
+        ❌ <strong>Erro:</strong> Apenas arquivos de imagem (JPG, PNG) são permitidos!
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('erro') === 'tipo_invalido') {
+            document.getElementById('alerta-erro').style.display = 'block';
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    </script>
 
-    <main class="container">
-        <p style="text-align: center;">Aqui entrará a lista de jogos...</p>
-    </main>
+    <div class="screens-container">
+
+        <div id="main-view" class="screen">
+
+            <div class="section-title">
+                <h1>Jogos</h1>
+            </div>
+
+            <div class="lists-wrapper">
+                <div class="list-column">
+                    <div class="title_todo"><h2>PLANEJADOS:</h2></div>
+                    <div class="movie-list-container">
+                        {% if jogos_planejados %}
+                            {% for jogo in jogos_planejados %}
+                                <a href="/jogos/{{ jogo.id }}" class="movie-item">
+                                    <span>{{ jogo.nome }}</span>
+                                    <span style="font-size: 0.8rem; color: #64748b;">Planejado</span>
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <p>Nenhum plano encontrado...</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="list-column">
+                    <div class="title_todo"><h2>finalizadoS:</h2></div>
+                    <div class="movie-list-container">
+                        {% if jogos_finalizados %}
+                            {% for jogo in jogos_finalizados %}
+                                <a href="/jogos/{{ jogo.id }}" class="movie-item">
+                                    <span>{{ jogo.nome }}</span>
+                                    {% if jogo.nota >= 8 %}
+                                        <span class="rating-badge rating-high">★ {{ jogo.nota }}</span>
+                                    {% elif jogo.nota >= 5 %}
+                                        <span class="rating-badge rating-mid">★ {{ jogo.nota }}</span>
+                                    {% else %}
+                                        <span class="rating-badge rating-low">★ {{ jogo.nota }}</span>
+                                    {% endif %}
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <p>Nenhum jogo finalizado...</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-area">
+                <button class="add-btn" onclick="toggleForm(true)">
+                    Adicionar Novo jogo
+                </button>
+            </div>
+        </div>
+        <div id="form-view" class="screen form-screen">
+            <div class="form-card">
+                <h2>Novo jogo</h2>
+                <p>O que vamos jogar?</p>
+
+                <form action="/jogos/novo" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label>Nome do jogo</label>
+                        <input type="text" name="nome_jogo" required autocomplete="off">
+                    </div>
+
+                    <div class="form-group" style="margin-top:15px">
+                        <label>Capa do jogo (Opcional)</label>
+                        <div class="custom-file-box" id="file-box">
+
+                            <input type="file" name="imagem" id="real-input" accept="image/*" onchange="atualizarInput(this)">
+
+                            <div class="visual-layer">
+                                <span class="custom-text" id="file-text">Selecione uma imagem...</span>
+                                <span class="custom-btn">Escolher Arquivo</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="add-btn">Salvar</button>
+                        <button type="button" class="btn-cancel" onclick="toggleForm(false)">Cancelar</button>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+        </div>
+
+    <script src="/static/js/script.js"></script>
 </body>
 </html>

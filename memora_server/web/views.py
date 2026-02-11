@@ -95,6 +95,41 @@ def create_filme(request: Request, nome_filme: str = Form(...), imagem: UploadFi
 
     return RedirectResponse(url="/filmes", status_code=303)
 
+@router.post("/jogos/novo")
+def create_jogo(request: Request, nome_jogo: str = Form(...), imagem: UploadFile = File(None)):
+    try:
+        caminho_imagem = None
+        TIPOS_VALIDOS = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
+
+        if imagem and imagem.filename:
+
+            if imagem.content_type not in TIPOS_VALIDOS:
+                print(f"Arquivo rejeitado: {imagem.content_type}")
+                return RedirectResponse(url="/jogos", status_code=303)
+
+            extensao = imagem.filename.split(".")[-1]
+            nome_arquivo = f"{uuid.uuid4()}.{extensao}"
+
+            pasta_destino = Path("static/uploads")
+            pasta_destino.mkdir(parents=True, exist_ok=True)
+            caminho_final = pasta_destino / nome_arquivo
+
+            with open(caminho_final, "wb") as buffer:
+                shutil.copyfileobj(imagem.file, buffer)
+            caminho_imagem = f"uploads/{nome_arquivo}"
+
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("INSERT INTO jogos (nome, imagem_capa) VALUES (%s, %s)", (nome_jogo, caminho_imagem))
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    return RedirectResponse(url="/jogos", status_code=303)
+
 
 @router.post("/filmes/{filme_id}/update-capa")
 def update_filme_capa(
@@ -138,6 +173,49 @@ def update_filme_capa(
         print(f"Erro ao atualizar capa: {e}")
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
+
+@router.post("/jogos/{jogo_id}/update-capa")
+def update_jogo_capa(
+        jogo_id: int,
+        imagem: UploadFile = File(...)
+):
+    try:
+        caminho_imagem = None
+        TIPOS_VALIDOS = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
+        if imagem and imagem.filename:
+
+            if imagem.content_type not in TIPOS_VALIDOS:
+                return RedirectResponse(url="/jogos?erro=tipo_invalido", status_code=303)
+
+            extensao = imagem.filename.split(".")[-1]
+            nome_arquivo = f"{uuid.uuid4()}.{extensao}"
+
+            pasta_destino = Path("static/uploads")
+            pasta_destino.mkdir(parents=True, exist_ok=True)
+            caminho_final = pasta_destino / nome_arquivo
+
+            with open(caminho_final, "wb") as buffer:
+                shutil.copyfileobj(imagem.file, buffer)
+
+            caminho_imagem = f"uploads/{nome_arquivo}"
+
+        if caminho_imagem:
+            conn = get_connection()
+            cursor = conn.cursor()
+
+            cursor.execute(
+                "UPDATE jogos SET imagem_capa = %s WHERE id = %s",
+                (caminho_imagem, jogo_id)
+            )
+
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+    except Exception as e:
+        print(f"Erro ao atualizar capa: {e}")
+
+    return RedirectResponse(url=f"/jogos/{jogo_id}", status_code=303)
 
 @router.post("/series/{serie_id}/update-capa")
 def update_serie_capa(
@@ -201,6 +279,25 @@ def update_comentario_filme(filme_id:int, comentario: str = Form(default="")):
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
 
+@router.post("/jogos/update-comentario/{jogo_id}")
+def update_comentario_jogo(jogo_id:int, comentario: str = Form(default="")):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE jogos SET comentario = %s WHERE id = %s",
+            (comentario, jogo_id)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao atualizar comentario: {e}")
+
+    return RedirectResponse(url=f"/jogos/{jogo_id}", status_code=303)
+
 @router.post("/series/{serie_id}/temporadas/update-comentario/{temporada_id}")
 def update_comentario_temporada(serie_id: int,temporada_id:int, comentario: str = Form(default="")):
     try:
@@ -255,6 +352,23 @@ def desmarcar_assistido(filme_id:int):
         print(f"Erro ao atualizar assistido: {e}")
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
+
+@router.get("/jogos/desmarcar-finalizado/{jogo_id}")
+def desmarcar_finalizado(jogo_id:int):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE jogos SET finalizado = false, nota = null WHERE id = %s",
+            (jogo_id,)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao atualizar finalizado: {e}")
+
+    return RedirectResponse(url=f"/jogos/{jogo_id}", status_code=303)
 
 @router.get("/series/{serie_id}/temporadas/{temporada_id}/desmarcar-assistido")
 def desmarcar_assistido_temporada(temporada_id:int, serie_id:int):
@@ -327,6 +441,57 @@ def read_filme_detalhe(request: Request, filme_id: int):
         {"request": request,"filme": filme_encontrado, "fotos": lista_fotos}
     )
 
+@router.get("/jogos/{jogo_id}")
+def read_jogo_detalhe(request: Request, jogo_id: int):
+    jogo_encontrado = None
+    lista_fotos = []
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM jogos WHERE id = %s", (jogo_id,))
+        dados_jogo = cursor.fetchone()
+
+        if dados_jogo:
+            cursor.execute("SELECT * FROM fotos_jogo WHERE jogo_id = %s ORDER BY data_upload DESC", (jogo_id,))
+            dados_fotos = cursor.fetchall()
+
+            for foto in dados_fotos:
+                lista_fotos.append({
+                    "id": foto[0],
+                    "jogo_id": foto[1],
+                    "caminho_foto": foto[2],
+                    "data_upload": foto[3]
+                })
+
+            jogo_encontrado = {
+                "id": dados_jogo[0],
+                "nome": dados_jogo[1],
+                "nota": dados_jogo[2],
+                "finalizado": dados_jogo[3],
+                "caminho_imagem": dados_jogo[4],
+                "comentarios": dados_jogo[5],
+            }
+
+        cursor.close()
+        conn.close()
+
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    if not jogo_encontrado:
+        return templates.TemplateResponse(
+            "jogos/jogo_nao_encontrado.html",
+            {"request": request},
+            status_code=404
+        )
+
+    return templates.TemplateResponse(
+        "jogos/jogo_detalhes.html",
+        {"request": request,"jogo": jogo_encontrado, "fotos": lista_fotos}
+    )
+
 @router.post("/filmes/remove-filme/{filme_id}")
 def remove_filme(request: Request, filme_id: int):
     try:
@@ -341,6 +506,21 @@ def remove_filme(request: Request, filme_id: int):
         print(f"Erro ao salvar: {e}")
 
     return RedirectResponse(url="/filmes", status_code=303)
+
+@router.post("/jogos/remove-jogo/{jogo_id}")
+def remove_jogo(request: Request, jogo_id: int):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM jogos WHERE ID = %s", (jogo_id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    return RedirectResponse(url="/jogos", status_code=303)
 
 @router.post("/filmes/mark-as-watched/{filme_id}")
 def mark_as_watched_filme(request: Request, filme_id, nota: int = Form(...)):
@@ -360,6 +540,25 @@ def mark_as_watched_filme(request: Request, filme_id, nota: int = Form(...)):
         print(f"Erro ao salvar: {e}")
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
+
+@router.post("/jogos/marcar-finalizado/{jogo_id}")
+def marcar_finalizado_jogo(request: Request, jogo_id, nota: int = Form(...)):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE jogos SET finalizado = true, nota = %s WHERE id = %s",
+            (nota, jogo_id)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    return RedirectResponse(url=f"/jogos/{jogo_id}", status_code=303)
 
 @router.post("/series/{serie_id}/temporadas/{temporada_id}/marcar-assistido")
 def mark_as_watched_temporada(request: Request,serie_id ,temporada_id, nota: int = Form(...)):
@@ -399,6 +598,24 @@ def alterar_nota_filme(request: Request, filme_id, nota: int = Form(...)):
         print(f"Erro ao salvar: {e}")
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
+
+@router.post("/jogos/alterar-nota/{jogo_id}")
+def alterar_nota_jogo(request: Request, jogo_id, nota: int = Form(...)):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE jogos SET nota = %s where id = %s", (nota, jogo_id)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    return RedirectResponse(url=f"/jogos/{jogo_id}", status_code=303)
 
 @router.post("/series/{serie_id}/temporadas/alterar-nota/{temporada_id}")
 def alterar_nota_temporada(request: Request,serie_id ,temporada_id, nota: int = Form(...)):
@@ -466,6 +683,34 @@ def adicionar_foto_filme(filme_id: int, arquivo: UploadFile = File(...)):
         print(f"Erro ao salvar foto: {e}")
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
+
+@router.post("/jogos/{jogo_id}/adicionar-foto")
+def adicionar_foto_jogo(jogo_id: int, arquivo: UploadFile = File(...)):
+    if arquivo.content_type not in ["image/jpeg", "image/png", "image/webp", "image/jpg"]:
+        return RedirectResponse(url=f"/jogos/{jogo_id}?erro=arquivo_invalido", status_code=303)
+
+    try:
+        extensao = arquivo.filename.split(".")[-1]
+        nome_novo = f"{uuid.uuid4()}.{extensao}"
+        caminho_relativo = f"uploads/{nome_novo}"
+
+        caminho_absoluto = Path("static") / caminho_relativo
+        with open(caminho_absoluto, "wb") as buffer:
+            shutil.copyfileobj(arquivo.file, buffer)
+
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO fotos_jogo (jogo_id, caminho_foto) VALUES (%s, %s)",
+            (jogo_id, caminho_relativo)
+        )
+        conn.commit()
+        conn.close()
+
+    except Exception as e:
+        print(f"Erro ao salvar foto: {e}")
+
+    return RedirectResponse(url=f"/jogos/{jogo_id}", status_code=303)
 
 @router.post("/series/{serie_id}/temporadas/{temporada_id}/adicionar-foto")
 def adicionar_foto_temporada(serie_id: int,temporada_id: int, arquivo: UploadFile = File(...)):
@@ -551,6 +796,32 @@ def remover_foto_filme(foto_id: int):
 
             conn.close()
             return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
+
+    except Exception as e:
+        print(f"Erro ao deletar foto: {e}")
+        return RedirectResponse(url="/series", status_code=303)
+
+@router.post("/jogos/fotos/remover/{foto_id}")
+def remover_foto_jogo(foto_id: int):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT caminho_foto, jogo_id FROM fotos_jogo WHERE id = %s", (foto_id,))
+        row = cursor.fetchone()
+
+        if row:
+            caminho_arquivo = Path("static") / row[0]
+            jogo_id = row[1]
+
+            if os.path.exists(caminho_arquivo):
+                os.remove(caminho_arquivo)
+
+            cursor.execute("DELETE FROM fotos_jogo WHERE id = %s", (foto_id,))
+            conn.commit()
+
+            conn.close()
+            return RedirectResponse(url=f"/jogos/{jogo_id}", status_code=303)
 
     except Exception as e:
         print(f"Erro ao deletar foto: {e}")
@@ -895,12 +1166,38 @@ def remove_filme(request: Request, serie_id: int):
     return RedirectResponse(url="/series", status_code=303)
 
 @router.get("/jogos", response_class=HTMLResponse)
-def read_jogos():
+def read_jogoss(request: Request):
+    jogos_planejados = []
+    jogos_finalizados = []
+
     try:
-        with open(JOGOS_PATH, "r", encoding="utf-8") as f:
-            return f.read()
-    except FileNotFoundError:
-        return "<h1>jogos.html não encontrado!</h1>"
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, nome, nota FROM jogos ORDER BY id DESC")
+        jogos_dados = cursor.fetchall()
+
+        for item in jogos_dados:
+            id_item = item[0]
+            nome_item = item[1]
+            nota = item[2]
+
+            if nota is None:
+                jogos_planejados.append({"id": id_item, "nome": nome_item})
+            else:
+                jogos_finalizados.append({"id": id_item, "nome": nome_item, "nota": nota})
+
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro no banco: {e}")
+
+    return templates.TemplateResponse("jogos/jogos.html", {
+        "request": request,
+        "jogos_planejados": jogos_planejados,
+        "jogos_finalizados": jogos_finalizados
+    })
+
+
 
 @router.get("/receitas", response_class=HTMLResponse)
 def read_receitas():

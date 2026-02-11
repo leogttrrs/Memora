@@ -18,6 +18,16 @@ def criar_tabelas():
             );
         """)
 
+        print("Verificando tabela 'jogos'...")
+        cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS jogos (
+                        id SERIAL PRIMARY KEY,
+                        nome VARCHAR(255) NOT NULL,
+                        nota INT CHECK (nota >= 1 AND nota <= 10),
+                        finalizado BOOLEAN DEFAULT FALSE
+                    );
+                """)
+
         print("Verificando tabela 'series'...")
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS series (
@@ -50,6 +60,10 @@ def criar_tabelas():
         cursor.execute("ALTER TABLE filmes ADD COLUMN IF NOT EXISTS imagem_capa VARCHAR(255);")
         cursor.execute("ALTER TABLE filmes ADD COLUMN IF NOT EXISTS comentario TEXT;")
 
+        print("Atualizando colunas de 'jogos'...")
+        cursor.execute("ALTER TABLE jogos ADD COLUMN IF NOT EXISTS imagem_capa VARCHAR(255);")
+        cursor.execute("ALTER TABLE jogos ADD COLUMN IF NOT EXISTS comentario TEXT;")
+
         # 3. Cria a tabela Fotos (CORRIGIDA)
         # Trocamos 'INT AUTO_INCREMENT' por 'SERIAL'
         # Trocamos 'DATETIME' por 'TIMESTAMP' (padrão do Postgres)
@@ -63,6 +77,17 @@ def criar_tabelas():
                 FOREIGN KEY (filme_id) REFERENCES filmes(id) ON DELETE CASCADE
             );
         """)
+
+        print("Verificando tabela 'fotos_jogo'...")
+        cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS fotos_jogo (
+                        id SERIAL PRIMARY KEY,
+                        jogo_id INT NOT NULL,
+                        caminho_foto VARCHAR(255) NOT NULL,
+                        data_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (jogo_id) REFERENCES jogos(id) ON DELETE CASCADE
+                    );
+                """)
 
         print("Verificando tabela 'fotos_serie'...")
         cursor.execute("""
