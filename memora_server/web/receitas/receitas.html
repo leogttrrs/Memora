@@ -3,19 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receitas - Memora</title>
-    <link rel="stylesheet" href="../../static/css/style.css">
+    <title>Memora - Receitas</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/memora.png">
 </head>
-<body>
+<body style="overflow-x: hidden;">
     <header class="top-bar">
         <div style="position: absolute; left: 20px;">
             <a href="/" style="color: #38bdf8; text-decoration: none;">⬅ Voltar</a>
         </div>
-        <h1>Receitas - Memora</h1>
+        <h1>Memora</h1>
     </header>
+    <div id="alerta-erro" style="display: none; background: #ef4444; color: white; padding: 15px; text-align: center; margin: 10px;">
+        ❌ <strong>Erro:</strong> Apenas arquivos de imagem (JPG, PNG) são permitidos!
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('erro') === 'tipo_invalido') {
+            document.getElementById('alerta-erro').style.display = 'block';
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    </script>
 
-    <main class="container">
-        <p style="text-align: center;">Aqui entrará a lista de receitas...</p>
-    </main>
+    <div class="screens-container">
+
+        <div id="main-view" class="screen">
+
+            <div class="section-title">
+                <h1>receitas</h1>
+            </div>
+
+            <div class="lists-wrapper">
+                <div class="list-column">
+                    <div class="title_todo"><h2>PLANEJADAS:</h2></div>
+                    <div class="movie-list-container">
+                        {% if receitas_planejadas %}
+                            {% for receita in receitas_planejadas %}
+                                <a href="/receitas/{{ receita.id }}" class="movie-item">
+                                    <span>{{ receita.nome }}</span>
+                                    <span style="font-size: 0.8rem; color: #64748b;">Planejado</span>
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <p>Nenhuma receita planejada...</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="list-column">
+                    <div class="title_todo"><h2>finalizadas:</h2></div>
+                    <div class="movie-list-container">
+                        {% if receitas_finalizadas %}
+                            {% for receita in receitas_finalizadas %}
+                                <a href="/receitas/{{ receita.id }}" class="movie-item">
+                                    <span>{{ receita.nome }}</span>
+                                    {% if receita.nota >= 8 %}
+                                        <span class="rating-badge rating-high">★ {{ receita.nota }}</span>
+                                    {% elif receita.nota >= 5 %}
+                                        <span class="rating-badge rating-mid">★ {{ receita.nota }}</span>
+                                    {% else %}
+                                        <span class="rating-badge rating-low">★ {{ receita.nota }}</span>
+                                    {% endif %}
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <p>Nenhum receita finalizada...</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-area">
+                <button class="add-btn" onclick="toggleForm(true)">
+                    Adicionar Nova receita
+                </button>
+            </div>
+        </div>
+        <div id="form-view" class="screen form-screen">
+            <div class="form-card">
+                <h2>Nova receita</h2>
+                <p>O que vamos preparar?</p>
+
+                <form action="/receitas/novo" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label>Nome do prato</label>
+                        <input type="text" name="nome_receita" required autocomplete="off">
+                    </div>
+
+                    <div class="form-group" style="margin-top:15px">
+                        <label>Capa (Opcional)</label>
+                        <div class="custom-file-box" id="file-box">
+
+                            <input type="file" name="imagem" id="real-input" accept="image/*" onchange="atualizarInput(this)">
+
+                            <div class="visual-layer">
+                                <span class="custom-text" id="file-text">Selecione uma imagem...</span>
+                                <span class="custom-btn">Escolher Arquivo</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top:15px">
+                        <label>Ingredientes</label>
+                        <textarea name="ingredientes" rows="8" placeholder="- 2 xícaras de farinha&#10;- 3 ovos&#10;- 1 colher de fermento..."></textarea>
+                    </div>
+
+                    <div class="form-group" style="margin-top:15px">
+                        <label>Modo de preparo</label>
+                        <textarea name="modo_preparo" rows="10" placeholder="Misture tudo em uma tigela grande e leve ao forno por 45 minutos..."></textarea>
+                    </div>
+
+
+                    <div class="form-actions">
+                        <button type="submit" class="add-btn">Salvar</button>
+                        <button type="button" class="btn-cancel" onclick="toggleForm(false)">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        </div>
+
+    <script src="/static/js/script.js"></script>
 </body>
 </html>

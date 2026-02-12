@@ -40,6 +40,20 @@ def criar_tabelas():
             );
         """)
 
+        print("Verificando tabela 'receitas'...")
+        cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS receitas (
+                        id SERIAL PRIMARY KEY,
+                        nome VARCHAR(255) NOT NULL,
+                        nota INT CHECK (nota >= 1 AND nota <= 10),
+                        provada BOOLEAN DEFAULT FALSE,
+                        imagem_capa VARCHAR(255),
+                        ingredientes TEXT,
+                        modo_preparo TEXT,
+                        comentario TEXT
+                    );
+                """)
+
         print("Verificando tabela 'temporadas'...")
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS temporadas (
@@ -77,6 +91,17 @@ def criar_tabelas():
                 FOREIGN KEY (filme_id) REFERENCES filmes(id) ON DELETE CASCADE
             );
         """)
+
+        print("Verificando tabela 'fotos_receita'...")
+        cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS fotos_receita (
+                        id SERIAL PRIMARY KEY,
+                        receita_id INT NOT NULL,
+                        caminho_foto VARCHAR(255) NOT NULL,
+                        data_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (receita_id) REFERENCES receitas(id) ON DELETE CASCADE
+                    );
+                """)
 
         print("Verificando tabela 'fotos_jogo'...")
         cursor.execute("""

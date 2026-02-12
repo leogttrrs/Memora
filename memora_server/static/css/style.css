@@ -397,6 +397,35 @@ body {
     max-width: 800px;
     text-align: center;
     box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    margin-top: 50px;
+}
+
+.recipe-row {
+    display: flex;           /* Ativa o modo linha */
+    gap: 30px;               /* Espaço entre as duas colunas */
+    align-items: flex-start; /* Alinha pelo topo (caso um texto seja maior que o outro) */
+    margin-bottom: 40px;     /* Espaço antes de chegar nos comentários */
+    width: 100%;
+}
+
+.recipe-col {
+    flex: 1;                 /* Faz as duas colunas terem o mesmo tamanho (50% / 50%) */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ajuste específico para as caixas de texto dentro das colunas */
+.recipe-col .comments-section.full-width {
+    max-width: 100%; /* Força ocupar a largura total da coluna */
+    margin: 0;       /* Remove a centralização automática */
+}
+
+/* --- RESPONSIVIDADE (CELULAR) --- */
+/* Se a tela for menor que 768px (Tablets e Celulares), volta a ser coluna */
+@media (max-width: 768px) {
+    .recipe-row {
+        flex-direction: column; /* Empilha um em cima do outro */
+    }
 }
 
 .form-card h2 {
@@ -475,19 +504,28 @@ body {
 }
 
 #form-view {
-    position: fixed; /* Fixa para não ocupar espaço embaixo */
-    top: 100px;      /* Abaixo do header */
+    position: fixed;
+    top: 80px; /* Ajustei para 80px para colar logo abaixo do header */
     left: 0;
-    transform: translateX(120vw); /* Fora da tela pra direita */
-    opacity: 0;
+    width: 100%;
 
-    /* Centralização do conteúdo do form */
+    /* --- A MÁGICA DA ROLAGEM AQUI --- */
+    height: calc(100vh - 80px); /* Define a altura exata (Tela inteira - Header) */
+    overflow-y: auto;           /* Se o conteúdo for maior, cria barra de rolagem SÓ aqui */
+    padding-bottom: 50px;       /* Um espaço extra no final para o botão não colar na borda */
+
+    /* --- MANTER ISSO (Do seu código antigo) --- */
+    transform: translateX(120vw);
+    opacity: 0;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    height: 100%;
-    padding-top: 50px;
-    pointer-events: none; /* Não clicável enquanto escondido */
+    align-items: flex-start; /* Importante: Alinha no topo para rolar para baixo */
+    pointer-events: none;
+    transition: all 0.5s ease-in-out;
+
+    /* Personaliza a barra de rolagem deste painel específico */
+    scrollbar-width: thin;
+    scrollbar-color: #334155 #0f172a;
 }
 
 .movie-cover-container {
@@ -1044,4 +1082,60 @@ body {
     color: #facc15;     /* Amarelo ouro */
     margin-right: 2px;  /* Espacinho entre a estrela e o número */
     font-size: 0.6rem;
+}
+
+/* --- ESTILOS ESPECÍFICOS PARA RECEITAS --- */
+
+/* Ajuste do container do grupo para alinhar texto à esquerda */
+.form-group {
+    text-align: left; /* Garante que o label fique na esquerda */
+    margin-bottom: 20px;
+}
+
+/* Estilo do Label (Título do campo) */
+.form-group label {
+    display: block; /* Força quebra de linha */
+    color: #38bdf8; /* Azul cyan (destaque igual ao título do card) */
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px; /* Espaço entre o título e a caixa */
+    margin-left: 5px;    /* Pequeno recuo para alinhar visualmente */
+}
+
+/* Estilo da Caixa de Texto Grande (Textarea) */
+.form-group textarea {
+    width: 100%;
+    background-color: #0f172a; /* Fundo escuro igual aos inputs */
+    border: 2px solid #334155;
+    border-radius: 12px;
+    padding: 15px;
+
+    color: #e2e8f0;
+    font-size: 1rem;
+    font-family: inherit; /* Importante: Herda a fonte do site (tira a fonte feia padrão) */
+    line-height: 1.6;     /* Aumenta o espaço entre linhas (bom para listas de ingredientes) */
+
+    resize: vertical;     /* Permite usuário aumentar altura, mas não largura */
+    min-height: 150px;    /* Altura mínima para não ficar muito pequeno */
+    outline: none;
+    transition: all 0.3s ease;
+
+    /* Barra de rolagem interna personalizada (herda do global, mas reforçando) */
+    scrollbar-color: #334155 #0f172a;
+}
+
+/* Efeito ao clicar para digitar */
+.form-group textarea:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.15); /* Brilho azul suave */
+    background-color: #162032; /* Leve clareada no fundo para indicar foco */
+}
+
+/* Placeholder (Texto de exemplo antes de digitar) */
+.form-group textarea::placeholder {
+    color: #475569;
+    font-style: italic;
+    opacity: 0.7;
 }

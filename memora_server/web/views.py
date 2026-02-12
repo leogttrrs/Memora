@@ -60,6 +60,38 @@ def read_filmes(request: Request):
         "filmes_assistidos": filmes_assistidos
     })
 
+@router.get("/receitas")
+def read_receitas(request: Request):
+    receitas_planejadas = []
+    receitas_provadas = []
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, nome, nota FROM receitas ORDER BY id DESC")
+        receitas_dados = cursor.fetchall()
+
+        for item in receitas_dados:
+            id_item = item[0]
+            nome_item = item[1]
+            nota = item[2]
+
+            if nota is None:
+                receitas_planejadas.append({"id": id_item, "nome": nome_item})
+            else:
+                receitas_provadas.append({"id": id_item, "nome": nome_item, "nota": nota})
+
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro no banco: {e}")
+
+    return templates.TemplateResponse("receitas/receitas.html", {
+        "request": request,
+        "receitas_planejadas": receitas_planejadas,
+        "receitas_provadas": receitas_provadas
+    })
+
 @router.post("/filmes/novo")
 def create_filme(request: Request, nome_filme: str = Form(...), imagem: UploadFile = File(None)):
     try:
@@ -129,6 +161,56 @@ def create_jogo(request: Request, nome_jogo: str = Form(...), imagem: UploadFile
         print(f"Erro ao salvar: {e}")
 
     return RedirectResponse(url="/jogos", status_code=303)
+
+
+@router.post("/receitas/novo")
+def create_receita(
+        request: Request,
+        nome_receita: str = Form(...),
+        ingredientes: str = Form(None),
+        modo_preparo: str = Form(None),
+        imagem: UploadFile = File(None)
+):
+    try:
+        caminho_imagem = None
+        TIPOS_VALIDOS = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
+
+        if imagem and imagem.filename:
+            if imagem.content_type not in TIPOS_VALIDOS:
+                print(f"Arquivo rejeitado: {imagem.content_type}")
+                return RedirectResponse(url="/receitas?erro=tipo_invalido", status_code=303)
+
+            extensao = imagem.filename.split(".")[-1]
+            nome_arquivo = f"{uuid.uuid4()}.{extensao}"
+
+            pasta_destino = Path("static/uploads")
+            pasta_destino.mkdir(parents=True, exist_ok=True)
+            caminho_final = pasta_destino / nome_arquivo
+
+            with open(caminho_final, "wb") as buffer:
+                shutil.copyfileobj(imagem.file, buffer)
+            caminho_imagem = f"uploads/{nome_arquivo}"
+
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            INSERT INTO receitas (nome, ingredientes, modo_preparo, imagem_capa) 
+            VALUES (%s, %s, %s, %s)
+            """,
+            (nome_receita, ingredientes, modo_preparo, caminho_imagem)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    # Redireciona para a página certa (estava indo para /jogos antes)
+    return RedirectResponse(url="/receitas", status_code=303)
 
 
 @router.post("/filmes/{filme_id}/update-capa")
@@ -260,6 +342,49 @@ def update_serie_capa(
 
     return RedirectResponse(url=f"/series/{serie_id}", status_code=303)
 
+@router.post("/receitas/{receita_id}/update-capa")
+def update_receita_capa(
+        receita_id: int,
+        imagem: UploadFile = File(...)
+):
+    try:
+        caminho_imagem = None
+        TIPOS_VALIDOS = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
+        if imagem and imagem.filename:
+
+            if imagem.content_type not in TIPOS_VALIDOS:
+                return RedirectResponse(url="/receitas?erro=tipo_invalido", status_code=303)
+
+            extensao = imagem.filename.split(".")[-1]
+            nome_arquivo = f"{uuid.uuid4()}.{extensao}"
+
+            pasta_destino = Path("static/uploads")
+            pasta_destino.mkdir(parents=True, exist_ok=True)
+            caminho_final = pasta_destino / nome_arquivo
+
+            with open(caminho_final, "wb") as buffer:
+                shutil.copyfileobj(imagem.file, buffer)
+
+            caminho_imagem = f"uploads/{nome_arquivo}"
+
+        if caminho_imagem:
+            conn = get_connection()
+            cursor = conn.cursor()
+
+            cursor.execute(
+                "UPDATE receitas SET imagem_capa = %s WHERE id = %s",
+                (caminho_imagem, receita_id)
+            )
+
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+    except Exception as e:
+        print(f"Erro ao atualizar capa: {e}")
+
+    return RedirectResponse(url=f"/receitas/{receita_id}", status_code=303)
+
 @router.post("/filmes/update-comentario/{filme_id}")
 def update_comentario_filme(filme_id:int, comentario: str = Form(default="")):
     try:
@@ -336,6 +461,64 @@ def update_comentario_filme(serie_id:int, comentario: str = Form(default="")):
 
     return RedirectResponse(url=f"/series/{serie_id}", status_code=303)
 
+@router.post("/receitas/update-comentario/{receita_id}")
+def update_comentario_receitas(receita_id:int, comentario: str = Form(default="")):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE receitas SET comentario = %s WHERE id = %s",
+            (comentario, receita_id)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao atualizar comentario: {e}")
+
+    return RedirectResponse(url=f"/receitas/{receita_id}", status_code=303)
+
+@router.post("/receitas/update-ingredientes/{receita_id}")
+def update_ingredientes_receitas(receita_id:int, ingredientes: str = Form(default="")):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE receitas SET ingredientes = %s WHERE id = %s",
+            (ingredientes, receita_id)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao atualizar ingredientes: {e}")
+
+    return RedirectResponse(url=f"/receitas/{receita_id}", status_code=303)
+
+@router.post("/receitas/update-modo-preparo/{receita_id}")
+def update_modo_preparo_receitas(receita_id:int, modo_preparo: str = Form(default="")):
+    try:
+        print(modo_preparo)
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE receitas SET modo_preparo = %s WHERE id = %s",
+            (modo_preparo, receita_id)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao atualizar modo_preparo: {e}")
+
+    return RedirectResponse(url=f"/receitas/{receita_id}", status_code=303)
+
 @router.get("/filmes/desmarcar-assistido/{filme_id}")
 def desmarcar_assistido(filme_id:int):
     try:
@@ -352,6 +535,23 @@ def desmarcar_assistido(filme_id:int):
         print(f"Erro ao atualizar assistido: {e}")
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
+
+@router.get("/receitas/desmarcar-provada/{receita_id}")
+def desmarcar_provada(receita_id:int):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE receitas SET provada = false, nota = null WHERE id = %s",
+            (receita_id,)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao atualizar provada: {e}")
+
+    return RedirectResponse(url=f"/receitas/{receita_id}", status_code=303)
 
 @router.get("/jogos/desmarcar-finalizado/{jogo_id}")
 def desmarcar_finalizado(jogo_id:int):
@@ -439,6 +639,59 @@ def read_filme_detalhe(request: Request, filme_id: int):
     return templates.TemplateResponse(
         "filmes/filme_detalhes.html",
         {"request": request,"filme": filme_encontrado, "fotos": lista_fotos}
+    )
+
+@router.get("/receitas/{receita_id}")
+def read_receita_detalhe(request: Request, receita_id: int):
+    receita_encontrada = None
+    lista_fotos = []
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM receitas WHERE id = %s", (receita_id,))
+        dados_receita = cursor.fetchone()
+
+        if dados_receita:
+            cursor.execute("SELECT * FROM fotos_receita WHERE receita_id = %s ORDER BY data_upload DESC", (receita_id,))
+            dados_fotos = cursor.fetchall()
+
+            for foto in dados_fotos:
+                lista_fotos.append({
+                    "id": foto[0],
+                    "receita_id": foto[1],
+                    "caminho_foto": foto[2],
+                    "data_upload": foto[3]
+                })
+
+            receita_encontrada = {
+                "id": dados_receita[0],
+                "nome": dados_receita[1],
+                "nota": dados_receita[2],
+                "provada": dados_receita[3],
+                "caminho_imagem": dados_receita[4],
+                "ingredientes": dados_receita[5],
+                "modo_preparo": dados_receita[6],
+                "comentario": dados_receita[7],
+            }
+
+        cursor.close()
+        conn.close()
+
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    if not receita_encontrada:
+        return templates.TemplateResponse(
+            "receitas/receita_nao_encontrada.html",
+            {"request": request},
+            status_code=404
+        )
+
+    return templates.TemplateResponse(
+        "receitas/receita_detalhes.html",
+        {"request": request,"receita": receita_encontrada, "fotos": lista_fotos}
     )
 
 @router.get("/jogos/{jogo_id}")
@@ -541,6 +794,25 @@ def mark_as_watched_filme(request: Request, filme_id, nota: int = Form(...)):
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
 
+@router.post("/receitas/marcar-provada/{receita_id}")
+def mark_as_watched_receita(request: Request, receita_id, nota: int = Form(...)):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE receitas SET provada = true, nota = %s WHERE id = %s",
+            (nota, receita_id)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    return RedirectResponse(url=f"/receitas/{receita_id}", status_code=303)
+
 @router.post("/jogos/marcar-finalizado/{jogo_id}")
 def marcar_finalizado_jogo(request: Request, jogo_id, nota: int = Form(...)):
     try:
@@ -598,6 +870,24 @@ def alterar_nota_filme(request: Request, filme_id, nota: int = Form(...)):
         print(f"Erro ao salvar: {e}")
 
     return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
+
+@router.post("/receitas/alterar-nota/{receita_id}")
+def alterar_nota_receita(request: Request, receita_id, nota: int = Form(...)):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE receitas SET nota = %s where id = %s", (nota, receita_id)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    return RedirectResponse(url=f"/receitas/{receita_id}", status_code=303)
 
 @router.post("/jogos/alterar-nota/{jogo_id}")
 def alterar_nota_jogo(request: Request, jogo_id, nota: int = Form(...)):
@@ -746,7 +1036,7 @@ def adicionar_foto_temporada(serie_id: int,temporada_id: int, arquivo: UploadFil
     return RedirectResponse(url=f"/series/{serie_id}/temporada/{temporada_id}", status_code=303)
 
 @router.post("/series/{serie_id}/adicionar-foto")
-def adicionar_foto(serie_id: int, arquivo: UploadFile = File(...)):
+def adicionar_foto_serie(serie_id: int, arquivo: UploadFile = File(...)):
     if arquivo.content_type not in ["image/jpeg", "image/png", "image/webp", "image/jpg"]:
         return RedirectResponse(url=f"/series/{serie_id}?erro=arquivo_invalido", status_code=303)
 
@@ -774,6 +1064,35 @@ def adicionar_foto(serie_id: int, arquivo: UploadFile = File(...)):
 
     return RedirectResponse(url=f"/series/{serie_id}", status_code=303)
 
+@router.post("/receitas/{receita_id}/adicionar-foto")
+def adicionar_foto_receita(receita_id: int, arquivo: UploadFile = File(...)):
+    if arquivo.content_type not in ["image/jpeg", "image/png", "image/webp", "image/jpg"]:
+        return RedirectResponse(url=f"/receitas/{receita_id}?erro=arquivo_invalido", status_code=303)
+
+    try:
+        extensao = arquivo.filename.split(".")[-1]
+        nome_novo = f"{uuid.uuid4()}.{extensao}"
+        caminho_relativo = f"uploads/{nome_novo}"
+
+
+        caminho_absoluto = Path("static") / caminho_relativo
+        with open(caminho_absoluto, "wb") as buffer:
+            shutil.copyfileobj(arquivo.file, buffer)
+
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO fotos_receita (receita_id, caminho_foto) VALUES (%s, %s)",
+            (receita_id, caminho_relativo)
+        )
+        conn.commit()
+        conn.close()
+
+    except Exception as e:
+        print(f"Erro ao salvar foto: {e}")
+
+    return RedirectResponse(url=f"/receitas/{receita_id}", status_code=303)
+
 
 @router.post("/filmes/fotos/remover/{foto_id}")
 def remover_foto_filme(foto_id: int):
@@ -796,6 +1115,32 @@ def remover_foto_filme(foto_id: int):
 
             conn.close()
             return RedirectResponse(url=f"/filmes/{filme_id}", status_code=303)
+
+    except Exception as e:
+        print(f"Erro ao deletar foto: {e}")
+        return RedirectResponse(url="/series", status_code=303)
+
+@router.post("/receitas/fotos/remover/{foto_id}")
+def remover_foto_receita(foto_id: int):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT caminho_foto, receita_id FROM fotos_receita WHERE id = %s", (foto_id,))
+        row = cursor.fetchone()
+
+        if row:
+            caminho_arquivo = Path("static") / row[0]
+            receita_id = row[1]
+
+            if os.path.exists(caminho_arquivo):
+                os.remove(caminho_arquivo)
+
+            cursor.execute("DELETE FROM fotos_receita WHERE id = %s", (foto_id,))
+            conn.commit()
+
+            conn.close()
+            return RedirectResponse(url=f"/receitas/{receita_id}", status_code=303)
 
     except Exception as e:
         print(f"Erro ao deletar foto: {e}")
@@ -1151,7 +1496,7 @@ def read_serie_detalhe(request: Request, serie_id: int):
     )
 
 @router.post("/series/remove-serie/{serie_id}")
-def remove_filme(request: Request, serie_id: int):
+def remove_serie(request: Request, serie_id: int):
     try:
         conn = get_connection()
         cursor = conn.cursor()
@@ -1164,6 +1509,21 @@ def remove_filme(request: Request, serie_id: int):
         print(f"Erro ao salvar: {e}")
 
     return RedirectResponse(url="/series", status_code=303)
+
+@router.post("/receitas/remove-receita/{receita_id}")
+def remove_filme(request: Request, receita_id: int):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM receitas WHERE ID = %s", (receita_id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    return RedirectResponse(url="/receitas", status_code=303)
 
 @router.get("/jogos", response_class=HTMLResponse)
 def read_jogoss(request: Request):
@@ -1196,16 +1556,6 @@ def read_jogoss(request: Request):
         "jogos_planejados": jogos_planejados,
         "jogos_finalizados": jogos_finalizados
     })
-
-
-
-@router.get("/receitas", response_class=HTMLResponse)
-def read_receitas():
-    try:
-        with open(RECEITAS_PATH, "r", encoding="utf-8") as f:
-            return f.read()
-    except FileNotFoundError:
-        return "<h1>receitas.html não encontrado!</h1>"
 
 @router.get("/viagens", response_class=HTMLResponse)
 def read_viagens():
