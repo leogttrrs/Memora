@@ -106,7 +106,7 @@
                 {% for foto in fotos %}
                     <div class="photo-card">
                         <img src="/static/{{ foto.caminho_foto }}" class="gallery-img" onclick="abrirLightbox('/static/{{ foto.caminho_foto }}')">
-                        <form action="/cidades/fotos/remover/{{ foto.id }}" method="post" onsubmit="return confirm('Apagar esta foto?')">
+                        <<form action="/viagens/cidades/fotos/remover/{{ foto.id }}" method="post" onsubmit="return confirm('Apagar esta foto?')">
                             <button type="submit" class="btn-delete-photo">×</button>
                         </form>
                     </div>

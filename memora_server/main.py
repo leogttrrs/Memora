@@ -1,16 +1,25 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 import os
 
-from api import endpoints
-from web import views
+from web.routers import filmes, series, jogos, receitas, viagens
 
-app = FastAPI(title="Memora System")
+app = FastAPI()
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-static_path = os.path.join(BASE_DIR, "static")
-app.mount("/static", StaticFiles(directory=static_path), name="static")
+TEMPLATES_DIR = os.path.join(BASE_DIR, "web")
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
-app.include_router(endpoints.router, prefix="/api", tags=["api"])
+app.include_router(filmes.router)
+app.include_router(series.router)
+app.include_router(jogos.router)
+app.include_router(receitas.router)
+app.include_router(viagens.router)
 
-app.include_router(views.router, tags=["web"])
+@app.get("/", response_class=HTMLResponse)
+def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})

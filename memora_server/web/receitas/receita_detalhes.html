@@ -195,7 +195,7 @@
         <form action="/receitas/remove-receita/{{ receita.id }}" method="post" onsubmit="return confirmarRemocao('receita')">
             <div class="action-footer">
                 <button type="submit" class="btn-delete" style="width: 100%;">
-                    {{ 'Deletar Memórias' if receita.assistido else 'Cancelar Plano' }}
+                    {{ 'Deletar Memórias' if receita.provada else 'Cancelar Plano' }}
                 </button>
             </div>
         </form>
