@@ -1,6 +1,6 @@
-/* --- MEMORA DARK MODE THEME --- */
-
-/* 1. Reset Global */
+/* =========================================
+   01. GLOBAL & RESET
+========================================= */
 * {
     margin: 0;
     padding: 0;
@@ -9,28 +9,43 @@
 
 body {
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    background-color: #0f172a; /* Azul quase preto (Fundo) */
-    color: #e2e8f0; /* Branco suave (Texto) */
+    background-color: #0f172a;
+    color: #e2e8f0;
     padding-top: 80px;
-
 }
 
-/* 2. Cabeçalho Fixo */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0f172a;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #334155;
+    border-radius: 4px;
+    border: 2px solid #0f172a;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #38bdf8;
+}
+
+/* =========================================
+   02. HEADER & NAVIGATION
+========================================= */
 .top-bar {
-    background-color: #1e293b; /* Azul escuro (Barra) */
+    background-color: #1e293b;
     width: 100%;
     padding: 20px 0;
     text-align: center;
     border-bottom: 1px solid #334155;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-
-    position: fixed; /* Trava a barra na tela */
-    top: 0;          /* Cola no teto */
-    left: 0;         /* Cola na esquerda */
-    width: 100%;     /* Garante largura total */
-    z-index: 1000;   /* Garante que fique POR CIMA de tudo (filmes, modais, etc) */
-
-    /* Opcional: Uma sombra suave para destacar do conteúdo */
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
     box-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
@@ -39,114 +54,16 @@ body {
     font-weight: 800;
     letter-spacing: -1px;
     text-transform: uppercase;
-    color: #38bdf8; /* Um azul ciano para destacar o logo */
+    color: #38bdf8;
 }
 
-.section-category {
-    /* CENTRALIZAR: O comando clássico para texto */
-    text-align: center;
-
-    /* ESPAÇAMENTO: Um respiro em cima e em baixo */
-    margin: 40px 0 30px 0;
-
-    /* ESTILO: Visual "Subtítulo Moderno" */
-    font-size: 1.2rem;       /* Não muito grande */
-    color: #94a3b8;          /* Cinza azulado (slate-400) - suave aos olhos */
-    font-weight: 400;        /* Fonte normal (não negrito) para contraste */
-    text-transform: uppercase; /* Caixa alta */
-    letter-spacing: 3px;     /* Letras bem espaçadas (dá um ar sofisticado) */
-
-    /* LINHAS LATERAIS (Opcional - Efeito visual bacana) */
-    display: flex;           /* Agora sim usamos flex para as linhas */
-    align-items: center;     /* Alinha as linhas com o texto */
-    justify-content: center; /* Centraliza o conjunto todo */
-    gap: 15px;               /* Espaço entre a linha e o texto */
-}
-
-/* Criando linhas decorativas ao lado do texto (Se quiser usar) */
-.section-category::before,
-.section-category::after {
-    content: "";
-    height: 1px;
-    width: 50px;             /* Tamanho da linha */
-    background-color: #334155; /* Cor da linha (escura e discreta) */
-    display: block;
-}
-
+/* =========================================
+   03. TYPOGRAPHY & TITLES
+========================================= */
 .section-title {
-    /* Removemos o display: flex e o justify-content */
-    text-align: center; /* Centraliza tudo dentro */
+    text-align: center;
     margin: 40px 0 20px 0;
     position: relative;
-}
-
-.add-btn {
-    /* RESETAMOS A MARGEM */
-    margin: 0;
-
-    /* Resto das configurações iguais... */
-    background-color: #38bdf8;
-    color: #0f172a;
-    font-family: inherit;
-    font-weight: 700;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border: none;
-    border-radius: 50px;
-    padding: 12px 24px;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
-    transition: all 0.3s ease;
-}
-
-.alter-btn {
-    /* Estrutura para ficar igual ao outro */
-    display: inline-flex;  /* Fundamental para aceitar width/height */
-    align-items: center;   /* Centraliza verticalmente */
-    justify-content: center; /* Centraliza horizontalmente */
-    width: 230px;          /* Largura fixa igual */
-    height: 54px;          /* Altura fixa igual */
-
-    margin-top: 20px;
-    background-color: #38bdf8;
-    color: #0f172a;
-
-    font-family: inherit;
-    font-weight: 700;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
-    transition: all 0.3s ease;
-    text-decoration: none; /* Caso use <a> aqui também */
-}
-
-.alter-btn:hover {
-    background-color: #7dd3fc;
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6);
-}
-
-.action-area {
-    text-align: center; /* Centraliza o botão */
-    padding-bottom: 40px; /* Garante que não cola no fim da página */
-}
-
-/* Efeito ao passar o mouse */
-.add-btn:hover {
-    background-color: #7dd3fc; /* Fica um pouco mais claro */
-    transform: translateY(-3px); /* Sobe um pouquinho */
-    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6); /* Sombra aumenta */
-}
-
-/* Efeito ao clicar */
-.add-btn:active {
-    transform: translateY(1px); /* Desce como se fosse apertado */
-    box-shadow: 0 2px 10px rgba(56, 189, 248, 0.3);
 }
 
 .section-title h1 {
@@ -155,190 +72,34 @@ body {
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: -2px;
-    margin: 0; /* Removemos margens estranhas */
-
-    /* O gradiente e sombra continuam iguais */
+    margin: 0;
     background: -webkit-linear-gradient(#fff, #94a3b8);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-shadow: 0 4px 30px rgba(56, 189, 248, 0.25);
 }
 
-::-webkit-scrollbar-thumb {
-    background-color: #334155; /* Um cinza azulado discreto */
-    border-radius: 4px; /* Bordas redondas */
-    border: 2px solid #0f172a; /* Cria uma margem interna para ficar bonito */
-}
-
-::-webkit-scrollbar {
-    width: 8px; /* Fininha e elegante */
-}
-
-::-webkit-scrollbar-track {
-    background: #0f172a; /* Mesma cor de fundo do site */
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background-color: #38bdf8; /* Fica AZUL NEON (Sua cor de destaque) */
-}
-
-
-/* 3. Layout Principal */
-.container {
-    max-width: 1000px;
-    margin: 40px auto; /* Centraliza na tela */
-    padding: 0 20px;
-    align-items: center;
-}
-
-.action-footer {
-    display: flex;
-    justify-content: flex-end; /* Joga para a DIREITA */
-    margin-top: 50px;          /* Empurra para BAIXO */
-    padding-top: 20px;
-    border-top: 1px solid #1e293b; /* Opcional: uma linha sutil separando */
-    width: 100%;
-}
-
-/* 4. A Mágica do Grid (Organiza os cards) */
-.dashboard-grid {
-    display: grid;
-    /* Isso cria colunas automáticas. Mínimo de 150px, máximo do que der. */
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 20px; /* Espaço entre os cards */
-}
-
-/* 5. Design do Card Individual */
-.menu-card {
-    background-color: #1e293b; /* Mesma cor do header */
-    border: 1px solid #334155;
-    border-radius: 16px;
-    padding: 30px 20px;
+.section-category {
     text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease; /* Animação suave */
-}
-
-/* Efeito ao passar o mouse (Hover) */
-.menu-card:hover {
-    background-color: #334155; /* Fica ligeiramente mais claro */
-    transform: translateY(-5px); /* O card sobe 5 pixels */
-    border-color: #38bdf8; /* A borda brilha em azul ciano */
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-}
-
-/* Ícones (Emojis) */
-.menu-card .icon {
-    font-size: 3rem;
-    margin-bottom: 10px;
-}
-
-/* Texto do Card */
-.menu-card h3 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #f1f5f9;
-}
-
-.title_todo h2{
-    text-align: center
-}
-
-/* --- Lista de Filmes (Scrollável) --- */
-.movie-list-container {
-    max-width: 800px; /* Largura da caixa */
-    margin: 20px auto; /* Centralizar */
-    background-color: #1e293b; /* Fundo do container */
-    border-radius: 12px;
-    border: 1px solid #334155;
-
-    /* A MÁGICA DO SCROLL: */
-    height: 400px;       /* Altura fixa */
-    overflow-y: auto;    /* Se passar da altura, cria barra de rolagem */
-    padding: 20px;
-}
-
-/* Estilo de cada Item da lista */
-.movie-item {
-    background-color: #0f172a; /* Mais escuro que o container */
-    padding: 15px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    border-left: 4px solid #38bdf8; /* Detalhe azul na esquerda */
-    color: #e2e8f0;
-    font-size: 1.1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: background 0.2s;
-    /* --- CONFIGURAÇÕES DE LINK --- */
-    text-decoration: none; /* Remove o sublinhado feio */
-    color: inherit;        /* Usa a cor do texto do pai (branco/cinza), não o azul padrão */
-    cursor: pointer;       /* Garante a mãozinha */
-    display: flex;           /* Faz o <a> virar uma caixa flexível */
-    width: 100%;             /* Força ocupar a largura toda do container */
-    box-sizing: border-box;  /* Garante que o padding não estoure o tamanho */
-}
-
-.movie-item:hover {
-    background-color: #1a2436; /* Efeito hover sutil */
-    transform: translateX(5px);
-}
-
-/* Estilo para quando a lista está vazia */
-.empty-state {
-    text-align: center;
-    color: #94a3b8;
-    margin-top: 150px;
+    margin: 40px 0 30px 0;
     font-size: 1.2rem;
-    font-style: italic;
-}
-
-/* --- Badges de Nota --- */
-.rating-badge {
-    display: inline-flex;
+    color: #94a3b8;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 5px; /* Espaço entre a estrela e o número */
-
-    padding: 4px 12px;
-    border-radius: 20px; /* Borda bem redonda */
-    font-weight: 800;
-    font-size: 0.9rem;
-    min-width: 50px;
+    gap: 15px;
 }
 
-/* Nota Alta (8 a 10) - Verde Esmeralda */
-.rating-high {
-    background-color: rgba(16, 185, 129, 0.2); /* Fundo transparente */
-    color: #34d399; /* Texto brilhante */
-    border: 1px solid #10b981;
-}
-
-/* Nota Média (5 a 7) - Amarelo/Laranja */
-.rating-mid {
-    background-color: rgba(245, 158, 11, 0.2);
-    color: #fbbf24;
-    border: 1px solid #f59e0b;
-}
-
-/* Nota Baixa (0 a 4) - Vermelho/Rosa */
-.rating-low {
-    background-color: rgba(239, 68, 68, 0.2);
-    color: #f87171;
-    border: 1px solid #ef4444;
-}
-
-.lists-wrapper {
-    display: grid;
-    /* Cria duas colunas de tamanho igual (1 fração cada) */
-    grid-template-columns: 1fr 1fr;
-    gap: 30px; /* Espaço entre as colunas */
-
-    max-width: 1200px; /* Largura total maior para caber as duas */
-    margin: 0 auto;    /* Centraliza na tela */
-    padding: 0 20px 40px 20px;
+.section-category::before,
+.section-category::after {
+    content: "";
+    height: 1px;
+    width: 50px;
+    background-color: #334155;
+    display: block;
 }
 
 .title_todo {
@@ -354,23 +115,29 @@ body {
     text-transform: uppercase;
 }
 
-.movie-list-container {
-    width: 100%;       /* Ocupa todo o espaço da coluna do grid */
-    height: 500px;     /* Aumentei um pouco a altura */
-    background-color: #1e293b;
-    border-radius: 12px;
-    border: 1px solid #334155;
-    overflow-y: auto;
-    padding: 20px;
-
-    /* Removemos o margin: 20px auto antigo, pois o Grid já cuida do layout */
-    margin: 0;
+/* =========================================
+   04. LAYOUT & CONTAINERS
+========================================= */
+.container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+    align-items: center;
 }
 
-@media (max-width: 768px) {
-    .lists-wrapper {
-        grid-template-columns: 1fr; /* Volta para 1 coluna só */
-    }
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 20px;
+}
+
+.lists-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px 40px 20px;
 }
 
 .screens-container {
@@ -378,16 +145,370 @@ body {
 }
 
 .screens-container.show-form #main-view {
-    transform: translateX(-120vw); /* Vai pra esquerda */
-    opacity: 0.3; /* Fica meio transparente */
+    transform: translateX(-120vw);
+    opacity: 0.3;
 }
 
 .screens-container.show-form #form-view {
-    transform: translateX(0); /* Vem pro centro */
+    transform: translateX(0);
     opacity: 1;
-    pointer-events: all; /* Volta a ser clicável */
+    pointer-events: all;
 }
 
+.screen {
+    width: 100%;
+    transition: all 0.5s ease-in-out;
+}
+
+#main-view {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+#form-view {
+    position: fixed;
+    top: 80px;
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    padding-bottom: 50px;
+    transform: translateX(120vw);
+    opacity: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    pointer-events: none;
+    transition: all 0.5s ease-in-out;
+    scrollbar-width: thin;
+    scrollbar-color: #334155 #0f172a;
+}
+
+.recipe-row {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    margin-bottom: 40px;
+    width: 100%;
+}
+
+.recipe-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.recipe-col .comments-section.full-width {
+    max-width: 100%;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .lists-wrapper {
+        grid-template-columns: 1fr;
+    }
+    .recipe-row {
+        flex-direction: column;
+    }
+}
+
+/* =========================================
+   05. BUTTONS & ACTIONS
+========================================= */
+.action-area {
+    text-align: center;
+    padding-bottom: 40px;
+}
+
+.action-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 50px;
+    padding-top: 20px;
+    border-top: 1px solid #1e293b;
+    width: 100%;
+}
+
+.add-btn {
+    margin: 0;
+    background-color: #38bdf8;
+    color: #0f172a;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+    transition: all 0.3s ease;
+}
+
+.add-btn:hover {
+    background-color: #7dd3fc;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6);
+}
+
+.add-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 10px rgba(56, 189, 248, 0.3);
+}
+
+.alter-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 230px;
+    height: 54px;
+    margin-top: 20px;
+    background-color: #38bdf8;
+    color: #0f172a;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.alter-btn:hover {
+    background-color: #7dd3fc;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6);
+}
+
+.unmark-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 230px;
+    height: 54px;
+    margin-top: 20px;
+    background-color: #facc15;
+    color: #0f172a;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(250, 204, 21, 0.4);
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.unmark-btn:hover {
+    background-color: #fde047;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(250, 204, 21, 0.6);
+}
+
+.btn-cancel {
+    background: transparent;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    padding: 12px 24px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.3s;
+}
+
+.btn-cancel:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.btn-delete {
+    background: transparent;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    padding: 12px 24px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.3s;
+}
+
+.btn-delete:hover {
+    background: rgba(239, 68, 68, 0.1);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+}
+
+.btn-confirm {
+    background-color: #22c55e;
+    color: #fff;
+    border: none;
+    padding: 11px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-confirm:hover {
+    background-color: #16a34a;
+}
+
+.movie-edit-options {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 25px;
+    flex-wrap: wrap;
+}
+
+/* =========================================
+   06. CARDS & LISTS
+========================================= */
+.menu-card {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 30px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.menu-card:hover {
+    background-color: #334155;
+    transform: translateY(-5px);
+    border-color: #38bdf8;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.menu-card .icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.menu-card h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #f1f5f9;
+}
+
+.movie-list-container {
+    width: 100%;
+    height: 500px;
+    background-color: #1e293b;
+    border-radius: 12px;
+    border: 1px solid #334155;
+    overflow-y: auto;
+    padding: 20px;
+    margin: 0;
+}
+
+.movie-item {
+    background-color: #0f172a;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border-left: 4px solid #38bdf8;
+    font-size: 1.1rem;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.movie-item:hover {
+    background-color: #1a2436;
+    transform: translateX(5px);
+}
+
+.empty-state {
+    text-align: center;
+    color: #94a3b8;
+    margin-top: 150px;
+    font-size: 1.2rem;
+    font-style: italic;
+}
+
+/* =========================================
+   07. BADGES & RATINGS
+========================================= */
+.rating-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    min-width: 50px;
+}
+
+.rating-high {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid #10b981;
+}
+
+.rating-mid {
+    background-color: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border: 1px solid #f59e0b;
+}
+
+.rating-low {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid #ef4444;
+}
+
+.grade-form-container {
+    background-color: rgba(30, 41, 59, 0.5);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px dashed #475569;
+    margin-top: 20px;
+}
+
+.input-nota {
+    width: 70px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background-color: #0F172A;
+    color: #fff;
+    font-size: 1.1rem;
+    text-align: center;
+    font-weight: bold;
+    -moz-appearance: textfield;
+}
+
+.input-nota::-webkit-outer-spin-button,
+.input-nota::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.input-nota:focus {
+    outline: none;
+    border-color: #38bdf8;
+}
+
+/* =========================================
+   08. FORMS, INPUTS & COMMENTS
+========================================= */
 .form-card {
     background-color: #1e293b;
     padding: 40px;
@@ -398,34 +519,6 @@ body {
     text-align: center;
     box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     margin-top: 50px;
-}
-
-.recipe-row {
-    display: flex;           /* Ativa o modo linha */
-    gap: 30px;               /* Espaço entre as duas colunas */
-    align-items: flex-start; /* Alinha pelo topo (caso um texto seja maior que o outro) */
-    margin-bottom: 40px;     /* Espaço antes de chegar nos comentários */
-    width: 100%;
-}
-
-.recipe-col {
-    flex: 1;                 /* Faz as duas colunas terem o mesmo tamanho (50% / 50%) */
-    display: flex;
-    flex-direction: column;
-}
-
-/* Ajuste específico para as caixas de texto dentro das colunas */
-.recipe-col .comments-section.full-width {
-    max-width: 100%; /* Força ocupar a largura total da coluna */
-    margin: 0;       /* Remove a centralização automática */
-}
-
-/* --- RESPONSIVIDADE (CELULAR) --- */
-/* Se a tela for menor que 768px (Tablets e Celulares), volta a ser coluna */
-@media (max-width: 768px) {
-    .recipe-row {
-        flex-direction: column; /* Empilha um em cima do outro */
-    }
 }
 
 .form-card h2 {
@@ -462,705 +555,147 @@ body {
     margin-top: 40px;
 }
 
-.btn-cancel {
-    background: transparent;
-    border: 1px solid #ef4444;
-    color: #ef4444;
-    padding: 12px 24px;
-    border-radius: 50px;
-    cursor: pointer;
-    font-weight: 700;
-    transition: all 0.3s;
-}
-
-.btn-cancel:hover {
-    background: rgba(239, 68, 68, 0.1);
-}
-
-.btn-delete {
-    background: transparent;
-    border: 1px solid #ef4444;
-    color: #ef4444;
-    padding: 12px 24px;
-    border-radius: 50px;
-    cursor: pointer;
-    font-weight: 700;
-    transition: all 0.3s;
-}
-
-.btn-delete:hover {
-    background: rgba(239, 68, 68, 0.1);
-    box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); /* Efeito de brilho vermelho */
-}
-
-.screen {
-    width: 100%;
-    transition: all 0.5s ease-in-out;
-}
-
-#main-view {
-    transform: translateX(0);
-    opacity: 1;
-}
-
-#form-view {
-    position: fixed;
-    top: 80px; /* Ajustei para 80px para colar logo abaixo do header */
-    left: 0;
-    width: 100%;
-
-    /* --- A MÁGICA DA ROLAGEM AQUI --- */
-    height: calc(100vh - 80px); /* Define a altura exata (Tela inteira - Header) */
-    overflow-y: auto;           /* Se o conteúdo for maior, cria barra de rolagem SÓ aqui */
-    padding-bottom: 50px;       /* Um espaço extra no final para o botão não colar na borda */
-
-    /* --- MANTER ISSO (Do seu código antigo) --- */
-    transform: translateX(120vw);
-    opacity: 0;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start; /* Importante: Alinha no topo para rolar para baixo */
-    pointer-events: none;
-    transition: all 0.5s ease-in-out;
-
-    /* Personaliza a barra de rolagem deste painel específico */
-    scrollbar-width: thin;
-    scrollbar-color: #334155 #0f172a;
-}
-
-.movie-cover-container {
-    text-align: center;
-    margin: 20px 0;
-    /* Centraliza a imagem se a tela for maior que ela */
-    display: flex;
-    justify-content: center;
-}
-
-.movie-cover {
-    /* --- TAMANHO NOVO (MAIOR) --- */
-    width: 8000px;            /* Era 300px */
-    height: 500px;           /* Era 450px (Mantendo a proporção 2:3) */
-
-    /* Garante que não quebre a tela em celulares pequenos */
-    max-width: 100%;
-
-    /* --- O RESTO CONTINUA IGUAL --- */
-    object-fit: cover;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-    background-color: #1e293b;
-}
-
-/* Remova a limitação de tamanho da genérica, deixe só a opacidade se quiser */
-.movie-cover.generic {
-    opacity: 0.5;  /* Deixa ela meio fantasma */
-    /* Apaguei o max-width: 200px que estava aqui antes */
-}
-
-/* Container Geral */
-.custom-file-box {
-    position: relative;
-    width: 100%;
-    height: 55px; /* Altura fixa é importante para o absolute funcionar bem */
-    background-color: #0F172A;
-    border: 2px solid #334155;
-    border-radius: 8px;
-    cursor: pointer;
-    overflow: hidden; /* Garante que nada saia da caixa durante o slide */
-    transition: all 0.3s;
-}
-
-.custom-file-box:hover {
-    border-color: #38bdf8;
-    box-shadow: 0 0 15px rgba(56, 189, 248, 0.1); /* Um brilho leve */
-}
-
-/* O Input Real fica invisível e esticado por cima de tudo */
-#real-input {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    z-index: 20; /* Fica acima de tudo */
-    cursor: pointer;
-    left: 0;
-    top: 0;
-}
-
-/* A Camada Visual (Fundo) */
-.visual-layer {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    pointer-events: none; /* Deixa o clique passar */
-}
-
-/* Estilo do Texto */
-.custom-text {
-    position: absolute;
-    top: 50%;
-    /* Centraliza verticalmente e define posição inicial X */
-    transform: translateY(-50%) translateX(15px);
-    left: 0;
-
-    color: #94a3b8;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 60%; /* Evita atropelar o botão */
-
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); /* Animação suave */
-}
-
-/* Estilo do Botão */
-.custom-btn {
-    position: absolute;
-    top: 50%;
-    /* Começa na direita: Vai para 100% da largura e volta o tamanho dele mesmo + 15px */
-    left: 100%;
-    transform: translateY(-50%) translateX(calc(-100% - 15px));
-
-
-    /* Adicionei line-height para garantir que a letra não empurre o botão */
-    line-height: 0.8;
-
-    background-color: #334155;
-    color: #fff;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 0.9rem;
-
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* --- A MÁGICA DA TROCA DE LADOS --- */
-
-/* Quando tiver arquivo, adicionamos essa classe via JS *
-
-/* Quando inverte, o botão vai pra esquerda e o texto pra direita.
-   Precisamos ajustar a cor do texto para parecer "ativo" */
-.custom-file-box.has-file .custom-text {
-    left: 100%;
-    transform: translateY(-50%) translateX(calc(-100% - 15px));
-    color: #cbd5e1; /* Fica mais claro */
-    text-align: right;
-}
-
-.custom-file-box.has-file .custom-btn {
-    left: 0;
-    transform: translateY(-50%) translateX(15px);
-    background-color: #38bdf8; /* Muda de cor para azul (opcional, fica bonito!) */
-    color: #0F172A; /* Texto escuro para contraste no azul */
-}
-
-/* Wrapper para posicionar o overlay em cima da imagem */
-.cover-wrapper {
-    position: relative; /* Importante! */
-    display: inline-block; /* Ajusta ao tamanho da imagem */
-    cursor: pointer;
-    border-radius: 12px;
-    overflow: hidden; /* Garante que o overlay respeite as bordas arredondadas */
-}
-
-/* O Overlay (Sombra preta com texto) */
-.edit-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6); /* Fundo preto transparente */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0; /* Começa invisível */
-    transition: opacity 0.3s ease;
-}
-
-/* Texto dentro do overlay */
-.edit-overlay span {
-    color: #fff;
-    font-weight: bold;
-    font-size: 1.2rem;
-    border: 2px solid #fff;
-    padding: 8px 16px;
-    border-radius: 20px;
-    background-color: rgba(0,0,0,0.5);
-}
-
-/* Quando passa o mouse no wrapper, mostra o overlay */
-.cover-wrapper:hover .edit-overlay {
-    opacity: 0.5;
-}
-
-.grade-form-container {
-    background-color: rgba(30, 41, 59, 0.5); /* Fundo sutil */
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px dashed #475569; /* Borda tracejada indica "área de ação" */
-    margin-top: 20px;
-}
-
-.input-nota {
-    width: 70px;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #334155;
-    background-color: #0F172A;
-    color: #fff;
-    font-size: 1.1rem;
-    text-align: center;
-    font-weight: bold;
-    -moz-appearance: textfield;
-}
-
-.input-nota::-webkit-outer-spin-button,
-.input-nota::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.input-nota:focus {
-    outline: none;
-    border-color: #38bdf8;
-}
-
-.btn-confirm {
-    background-color: #22c55e; /* Verde (Sucesso) */
-    color: #fff;
-    border: none;
-    padding: 11px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.btn-confirm:hover {
-    background-color: #16a34a;
-}
-
-/* Fundo escuro que cobre a tela toda */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); /* Preto transparente */
-    z-index: 2000; /* Fica acima de tudo (inclusive do header) */
-
-    /* Centraliza a caixa no meio da tela */
-    display: flex; /* O JS vai mudar isso para 'flex' ou 'none' */
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(5px); /* Efeito de desfoque no fundo (moderno!) */
-}
-
-/* A caixinha do formulário */
-.modal-box {
-    background-color: #1e293b;
-    padding: 30px;
-    border-radius: 16px;
-    border: 1px solid #334155;
-    text-align: center;
-    width: 90%;
-    max-width: 350px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-
-    /* Animação de entrada */
-    animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.modal-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin-top: 20px;
-}
-
-/* Animação bonitinha de 'pulo' quando abre */
-@keyframes modalPop {
-    from { transform: scale(0.8); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-}
-
-/* Container da área de comentários */
-.comments-section {
-    width: 100%;
-    max-width: 600px; /* Limita a largura para não ficar muito esticado */
-    margin: 0 auto;   /* Centraliza na tela */
-    text-align: left; /* Texto digita da esquerda pra direita */
-}
-
-/* O Estilo do Textarea (Bloco de Notas) */
-.comment-box {
-    width: 100%;
-    background-color: #0F172A; /* Fundo bem escuro (Slate 900) */
-    color: #cbd5e1;            /* Texto cinza claro */
-    border: 2px solid #334155;
-    border-radius: 12px;
-    padding: 15px;
-    font-size: 1rem;
-    font-family: inherit;      /* Usa a mesma fonte do site */
-    resize: vertical;          /* Permite o usuário aumentar a altura se quiser */
-    outline: none;
-    transition: all 0.3s ease;
-    line-height: 1.5;
-}
-
-/* Quando clica para digitar */
-.comment-box:focus {
-    border-color: #38bdf8;        /* Borda azul */
-    box-shadow: 0 0 15px rgba(56, 189, 248, 0.1);
-}
-
-/* O botão de salvar comentário */
-.btn-save-comment {
-    background-color: #334155;
-    color: #fff;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background 0.2s;
-}
-
-.btn-save-comment:hover {
-    background-color: #38bdf8; /* Fica azul no hover */
-    color: #0F172A;
-}
-
-.movie-edit-options {
-    display: flex;
-    align-items: center;     /* Alinha verticalmente no centro */
-    justify-content: center; /* Centraliza os dois botões na tela */
-    gap: 15px;               /* Espaço entre os botões */
-    margin-top: 25px;        /* Espaço acima do bloco todo */
-    flex-wrap: wrap;         /* Se a tela for muito pequena, um cai pra baixo do outro */
-}
-
-.unmark-btn {
-    /* Copiando a estrutura exata do azul */
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 230px;          /* Largura fixa igual */
-    height: 54px;          /* Altura fixa igual */
-
-    margin-top: 20px;
-    background-color: #facc15; /* Amarelo */
-    color: #0f172a;
-
-    font-family: inherit;
-    font-weight: 700;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(250, 204, 21, 0.4);
-    transition: all 0.3s ease;
-    text-decoration: none;
-}
-
-.unmark-btn:hover {
-    background-color: #fde047;
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(250, 204, 21, 0.6);
-}
-
-/* --- Botão de Adicionar Foto --- */
-.btn-add-photo {
-    background-color: transparent;
-    border: 1px dashed #38bdf8;
-    color: #38bdf8;
-    padding: 5px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s;
-}
-.btn-add-photo:hover {
-    background-color: rgba(56, 189, 248, 0.1);
-}
-
-/* --- Grade da Galeria --- */
-.gallery-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Responsivo automático */
-    gap: 15px;
-    max-width: 800px;
-    margin: 0 auto 40px auto;
-}
-
-/* --- O Cartão da Foto --- */
-.photo-card {
-    position: relative; /* Para posicionar o botão X absoluto */
-    aspect-ratio: 1 / 1; /* Força ser quadrado */
-    overflow: hidden;
-    border-radius: 12px;
-    border: 2px solid #334155;
-    transition: transform 0.2s;
-}
-
-.photo-card:hover {
-    transform: scale(1.03);
-    border-color: #cbd5e1;
-}
-
-/* A Imagem dentro do quadrado */
-.gallery-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Corta a imagem para preencher o quadrado sem esticar */
-    cursor: pointer;
-}
-
-/* --- Botão de Deletar Foto (X) --- */
-.btn-delete-photo {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background-color: rgba(0, 0, 0, 0.6);
-    color: #ef4444;
-    border: none;
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-weight: bold;
-    display: flex;     /* Centraliza o X */
-    align-items: center;
-    justify-content: center;
-    opacity: 0;        /* Escondido por padrão */
-    transition: opacity 0.2s;
-}
-
-/* Só mostra o X quando passa o mouse na foto */
-.photo-card:hover .btn-delete-photo {
-    opacity: 1;
-}
-.btn-delete-photo:hover {
-    background-color: #ef4444;
-    color: white;
-}
-
-/* --- LIGHTBOX (Tela Cheia) --- */
-.lightbox-overlay {
-    display: none; /* Escondido */
-    position: fixed;
-    z-index: 3000; /* Acima de tudo */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
-    align-items: center;
-    justify-content: center;
-    cursor: zoom-out; /* Ícone de diminuir zoom */
-    backdrop-filter: blur(5px);
-}
-
-.lightbox-overlay img {
-    max-width: 90%;
-    max-height: 90%;
-    border-radius: 8px;
-    box-shadow: 0 0 50px rgba(0,0,0,0.5);
-    cursor: default; /* Clicar na imagem não fecha (opcional) */
-}
-
-.lightbox-close {
-    position: absolute;
-    top: 20px;
-    right: 30px;
-    color: #fff;
-    font-size: 40px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-/* Container principal para dar espaçamento */
-.seasons-wrapper {
-    margin: 30px auto;
-    max-width: 600px; /* Limita a largura pra não ficar gigante em telas wide */
-    text-align: left;
-}
-
-/* O GRID MÁGICO */
-.seasons-grid {
-    display: grid;
-    /* Aqui está a regra: 5 colunas de tamanho igual (1 fraction) */
-    grid-template-columns: repeat(5, 1fr);
-    gap: 15px; /* Espaço entre os botões */
-}
-
-/* O Estilo do Botão da Temporada */
-.season-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    background-color: #1e293b; /* Cor escura padrão */
-    color: #cbd5e1;
-    border: 2px solid #334155;
-    border-radius: 12px;
-
-    height: 60px; /* Altura fixa para ficarem quadrados/retangulares bonitos */
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 1.2rem;
-    transition: all 0.2s ease;
-    position: relative; /* Para posicionar o check */
-}
-
-/* Efeito Hover (Mouse em cima) */
-.season-btn:hover {
-    background-color: #38bdf8; /* Azul claro */
-    color: #0f172a;            /* Texto escuro */
-    border-color: #38bdf8;
-    transform: translateY(-3px); /* Sobe um pouquinho */
-    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
-}
-
-/* --- Variação: Se a temporada já foi assistida (Classe .watched) --- */
-.season-btn.watched {
-    background-color: #064e3b; /* Fundo esverdeado escuro */
-    border-color: #10b981;     /* Borda verde */
-    color: #34d399;            /* Texto verde claro */
-}
-
-.season-btn.watched:hover {
-    background-color: #10b981; /* Fica verde brilhante no hover */
-    color: #fff;
-}
-
-/* O ícone de checkzinho pequeno */
-.check-icon {
-    font-size: 0.6rem;
-    position: absolute;
-    top: 3px;
-    right: 5px;
-}
-
-/* --- Responsividade --- */
-/* Se a tela for de celular (muito pequena), muda para 3 por linha em vez de 5 */
-@media (max-width: 500px) {
-    .seasons-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-/* A "pílula" da nota */
-.season-rate-badge {
-    position: absolute;
-    bottom: 3px;         /* 3px da parte de baixo */
-    right: 3px;          /* 3px da direita */
-
-    background-color: rgba(0, 0, 0, 0.4); /* Fundo escuro translúcido para leitura */
-    color: #fff;
-    font-size: 0.7rem;   /* Fonte pequenininha */
-    font-weight: bold;
-
-    padding: 1px 6px;    /* Espaçamento interno */
-    border-radius: 8px;  /* Bordas redondas */
-
-    display: flex;       /* Ajuda a alinhar caso queira por ícone */
-    align-items: center;
-    pointer-events: none; /* O clique passa através dele e vai para o botão */
-}
-
-/* --- TOQUE DE MESTRE: A Estrelinha Automática --- */
-/* Isso adiciona uma estrela amarela antes do número via CSS */
-.season-rate-badge::before {
-    content: "★";       /* Caractere de estrela */
-    color: #facc15;     /* Amarelo ouro */
-    margin-right: 2px;  /* Espacinho entre a estrela e o número */
-    font-size: 0.6rem;
-}
-
-/* --- ESTILOS ESPECÍFICOS PARA RECEITAS --- */
-
-/* Ajuste do container do grupo para alinhar texto à esquerda */
 .form-group {
-    text-align: left; /* Garante que o label fique na esquerda */
+    text-align: left;
     margin-bottom: 20px;
 }
 
-/* Estilo do Label (Título do campo) */
 .form-group label {
-    display: block; /* Força quebra de linha */
-    color: #38bdf8; /* Azul cyan (destaque igual ao título do card) */
+    display: block;
+    color: #38bdf8;
     font-size: 0.9rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin-bottom: 10px; /* Espaço entre o título e a caixa */
-    margin-left: 5px;    /* Pequeno recuo para alinhar visualmente */
+    margin-bottom: 10px;
+    margin-left: 5px;
 }
 
-/* Estilo da Caixa de Texto Grande (Textarea) */
 .form-group textarea {
     width: 100%;
-    background-color: #0f172a; /* Fundo escuro igual aos inputs */
+    background-color: #0f172a;
     border: 2px solid #334155;
     border-radius: 12px;
     padding: 15px;
-
     color: #e2e8f0;
     font-size: 1rem;
-    font-family: inherit; /* Importante: Herda a fonte do site (tira a fonte feia padrão) */
-    line-height: 1.6;     /* Aumenta o espaço entre linhas (bom para listas de ingredientes) */
-
-    resize: vertical;     /* Permite usuário aumentar altura, mas não largura */
-    min-height: 150px;    /* Altura mínima para não ficar muito pequeno */
+    font-family: inherit;
+    line-height: 1.6;
+    resize: vertical;
+    min-height: 150px;
     outline: none;
     transition: all 0.3s ease;
-
-    /* Barra de rolagem interna personalizada (herda do global, mas reforçando) */
     scrollbar-color: #334155 #0f172a;
 }
 
-/* Efeito ao clicar para digitar */
 .form-group textarea:focus {
     border-color: #38bdf8;
-    box-shadow: 0 0 15px rgba(56, 189, 248, 0.15); /* Brilho azul suave */
-    background-color: #162032; /* Leve clareada no fundo para indicar foco */
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
+    background-color: #162032;
 }
 
-/* Placeholder (Texto de exemplo antes de digitar) */
 .form-group textarea::placeholder {
     color: #475569;
     font-style: italic;
     opacity: 0.7;
 }
 
-/* Container de cada linha de cidade (para alinhar o input com o botão de remover) */
+.custom-file-box {
+    position: relative;
+    width: 100%;
+    height: 55px;
+    background-color: #0F172A;
+    border: 2px solid #334155;
+    border-radius: 8px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.custom-file-box:hover {
+    border-color: #38bdf8;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.1);
+}
+
+#real-input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    z-index: 20;
+    cursor: pointer;
+    left: 0;
+    top: 0;
+}
+
+.visual-layer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.custom-text {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%) translateX(15px);
+    left: 0;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60%;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-btn {
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%) translateX(calc(-100% - 15px));
+    line-height: 0.8;
+    background-color: #334155;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-file-box.has-file .custom-text {
+    left: 100%;
+    transform: translateY(-50%) translateX(calc(-100% - 15px));
+    color: #cbd5e1;
+    text-align: right;
+}
+
+.custom-file-box.has-file .custom-btn {
+    left: 0;
+    transform: translateY(-50%) translateX(15px);
+    background-color: #38bdf8;
+    color: #0F172A;
+}
+
 .city-input-group {
     display: flex;
     gap: 10px;
-    margin-bottom: 10px; /* Espaço entre uma cidade e outra */
+    margin-bottom: 10px;
     align-items: center;
 }
 
-/* Garante que o input ocupe todo o espaço disponível */
 .city-input-group input {
-    margin-bottom: 0 !important; /* Remove a margem padrão do input pra alinhar com o botão */
+    margin-bottom: 0 !important;
     flex: 1;
 }
 
-/* Botão pequeno de "Remover" (X vermelho) */
 .btn-remove-city {
     background-color: rgba(239, 68, 68, 0.2);
     color: #ef4444;
     border: 1px solid #ef4444;
     width: 40px;
-    height: 48px; /* Mesma altura do input aprox */
+    height: 48px;
     border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
@@ -1176,7 +711,6 @@ body {
     color: white;
 }
 
-/* Botão de "+ Adicionar Cidade" */
 .btn-add-city {
     background-color: transparent;
     border: 1px dashed #38bdf8;
@@ -1185,7 +719,7 @@ body {
     border-radius: 8px;
     cursor: pointer;
     font-size: 0.9rem;
-    width: 100%; /* Ocupa a largura toda */
+    width: 100%;
     transition: all 0.2s;
     margin-top: 5px;
 }
@@ -1195,34 +729,372 @@ body {
     border-style: solid;
 }
 
+.comments-section {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.comment-box {
+    width: 100%;
+    background-color: #0F172A;
+    color: #cbd5e1;
+    border: 2px solid #334155;
+    border-radius: 12px;
+    padding: 15px;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: all 0.3s ease;
+    line-height: 1.5;
+}
+
+.comment-box:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.1);
+}
+
+.btn-save-comment {
+    background-color: #334155;
+    color: #fff;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-save-comment:hover {
+    background-color: #38bdf8;
+    color: #0F172A;
+}
+
+/* =========================================
+   09. IMAGES, COVERS & GALLERY
+========================================= */
+.movie-cover-container {
+    text-align: center;
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.movie-cover {
+    width: 8000px;
+    height: 500px;
+    max-width: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    background-color: #1e293b;
+}
+
+.movie-cover.generic {
+    opacity: 0.5;
+}
+
+.cover-wrapper {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.edit-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.edit-overlay span {
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.2rem;
+    border: 2px solid #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.cover-wrapper:hover .edit-overlay {
+    opacity: 0.5;
+}
+
+.btn-add-photo {
+    background-color: transparent;
+    border: 1px dashed #38bdf8;
+    color: #38bdf8;
+    padding: 5px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.btn-add-photo:hover {
+    background-color: rgba(56, 189, 248, 0.1);
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    max-width: 800px;
+    margin: 0 auto 40px auto;
+}
+
+.photo-card {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 12px;
+    border: 2px solid #334155;
+    transition: transform 0.2s;
+}
+
+.photo-card:hover {
+    transform: scale(1.03);
+    border-color: #cbd5e1;
+}
+
+.gallery-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+.btn-delete-photo {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #ef4444;
+    border: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.photo-card:hover .btn-delete-photo {
+    opacity: 1;
+}
+
+.btn-delete-photo:hover {
+    background-color: #ef4444;
+    color: white;
+}
+
+/* =========================================
+   10. MODALS & LIGHTBOX
+========================================= */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+}
+
+.modal-box {
+    background-color: #1e293b;
+    padding: 30px;
+    border-radius: 16px;
+    border: 1px solid #334155;
+    text-align: center;
+    width: 90%;
+    max-width: 350px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+@keyframes modalPop {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.lightbox-overlay {
+    display: none;
+    position: fixed;
+    z-index: 3000;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+    backdrop-filter: blur(5px);
+}
+
+.lightbox-overlay img {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 8px;
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    cursor: default;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* =========================================
+   11. SEASONS & CITIES GRID
+========================================= */
+.seasons-wrapper {
+    margin: 30px auto;
+    max-width: 600px;
+    text-align: left;
+}
+
+.seasons-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+}
+
+.season-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #1e293b;
+    color: #cbd5e1;
+    border: 2px solid #334155;
+    border-radius: 12px;
+    height: 60px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.2rem;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.season-btn:hover {
+    background-color: #38bdf8;
+    color: #0f172a;
+    border-color: #38bdf8;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+}
+
+.season-btn.watched {
+    background-color: #064e3b;
+    border-color: #10b981;
+    color: #34d399;
+}
+
+.season-btn.watched:hover {
+    background-color: #10b981;
+    color: #fff;
+}
+
+.check-icon {
+    font-size: 0.6rem;
+    position: absolute;
+    top: 3px;
+    right: 5px;
+}
+
+.season-rate-badge {
+    position: absolute;
+    bottom: 3px;
+    right: 3px;
+    background-color: rgba(0, 0, 0, 0.4);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 1px 6px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+}
+
+.season-rate-badge::before {
+    content: "★";
+    color: #facc15;
+    margin-right: 2px;
+    font-size: 0.6rem;
+}
+
+@media (max-width: 500px) {
+    .seasons-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* =========================================
+   12. ERROR PAGE (404)
+========================================= */
 .error-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 65vh; /* Centraliza verticalmente na tela */
-            position: relative;
-            text-align: center;
-        }
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 65vh;
+    position: relative;
+    text-align: center;
+}
 
-        .error-text {
-            font-size: 2.5rem;
-            color: #e2e8f0;
-            margin-bottom: 15px;
-            text-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
+.error-text {
+    font-size: 2.5rem;
+    color: #e2e8f0;
+    margin-bottom: 15px;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
 
-        .error-subtext {
-            color: #94a3b8;
-            font-size: 1.2rem;
-            margin-bottom: 40px;
-            max-width: 500px;
-            line-height: 1.5;
-        }
+.error-subtext {
+    color: #94a3b8;
+    font-size: 1.2rem;
+    margin-bottom: 40px;
+    max-width: 500px;
+    line-height: 1.5;
+}
 
-        .action-buttons {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
+.action-buttons {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
