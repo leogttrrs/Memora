@@ -631,8 +631,8 @@ def read_filme_detalhe(request: Request, filme_id: int):
 
     if not filme_encontrado:
         return templates.TemplateResponse(
-            "filmes/filme_nao_encontrado.html",
-            {"request": request},
+            "item_nao_encontrado.html",
+            {"request": request, "item": "Filme"},
             status_code=404
         )
 
@@ -684,8 +684,8 @@ def read_receita_detalhe(request: Request, receita_id: int):
 
     if not receita_encontrada:
         return templates.TemplateResponse(
-            "receitas/receita_nao_encontrada.html",
-            {"request": request},
+            "item_nao_encontrado.html",
+            {"request": request, "item": "Receita"},
             status_code=404
         )
 
@@ -735,8 +735,8 @@ def read_jogo_detalhe(request: Request, jogo_id: int):
 
     if not jogo_encontrado:
         return templates.TemplateResponse(
-            "jogos/jogo_nao_encontrado.html",
-            {"request": request},
+            "item_nao_encontrado.html",
+            {"request": request, "item": "Jogo"},
             status_code=404
         )
 
@@ -1093,6 +1093,35 @@ def adicionar_foto_receita(receita_id: int, arquivo: UploadFile = File(...)):
 
     return RedirectResponse(url=f"/receitas/{receita_id}", status_code=303)
 
+@router.post("/viagens/{viagem_id}/adicionar-foto")
+def adicionar_foto_viagem(viagem_id: int, arquivo: UploadFile = File(...)):
+    if arquivo.content_type not in ["image/jpeg", "image/png", "image/webp", "image/jpg"]:
+        return RedirectResponse(url=f"/viagens/{viagem_id}?erro=arquivo_invalido", status_code=303)
+
+    try:
+        extensao = arquivo.filename.split(".")[-1]
+        nome_novo = f"{uuid.uuid4()}.{extensao}"
+        caminho_relativo = f"uploads/{nome_novo}"
+
+
+        caminho_absoluto = Path("static") / caminho_relativo
+        with open(caminho_absoluto, "wb") as buffer:
+            shutil.copyfileobj(arquivo.file, buffer)
+
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO fotos_viagem (viagem_id, caminho_foto) VALUES (%s, %s)",
+            (viagem_id, caminho_relativo)
+        )
+        conn.commit()
+        conn.close()
+
+    except Exception as e:
+        print(f"Erro ao salvar foto: {e}")
+
+    return RedirectResponse(url=f"/viagens/{viagem_id}", status_code=303)
+
 
 @router.post("/filmes/fotos/remover/{foto_id}")
 def remover_foto_filme(foto_id: int):
@@ -1389,8 +1418,8 @@ def read_temporada(request: Request, temporada_id: int, serie_id: int):
 
     if not temporada_encontrada:
         return templates.TemplateResponse(
-            "filmes/filme_nao_encontrado.html",
-            {"request": request},
+            "item_nao_encontrado.html",
+            {"request": request, "item": "Temporada"},
             status_code=404
         )
 
@@ -1485,8 +1514,8 @@ def read_serie_detalhe(request: Request, serie_id: int):
 
     if not serie_encontrada:
         return templates.TemplateResponse(
-            "filmes/filme_nao_encontrado.html",
-            {"request": request},
+            "item_nao_encontrado.html",
+            {"request": request, "item": "Série"},
             status_code=404
         )
 
@@ -1557,13 +1586,184 @@ def read_jogoss(request: Request):
         "jogos_finalizados": jogos_finalizados
     })
 
-@router.get("/viagens", response_class=HTMLResponse)
-def read_viagens():
+@router.get("/viagens")
+def read_viagens(request: Request):
+    viagens_planejadas = []
+    viagens_feitas = []
+
     try:
-        with open(VIAGENS_PATH, "r", encoding="utf-8") as f:
-            return f.read()
-    except FileNotFoundError:
-        return "<h1>viagens.html não encontrado!</h1>"
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM viagens ORDER BY id DESC")
+        viagens_dados = cursor.fetchall()
+
+        for item in viagens_dados:
+            viagem_id = item[0]
+            viagem_nome = item[1]
+            nota = item[2]
+            feita = item[3]
+
+            cursor.execute("SELECT visitada FROM cidades_x_viagem WHERE viagem_id = %s", (viagem_id,))
+            cidades_results = cursor.fetchall()
+
+            viagem_obj = {
+                "id": viagem_id,
+                "nome": viagem_nome,
+                "nota": nota,
+            }
+
+            if not feita:
+                viagens_planejadas.append(viagem_obj)
+            else:
+                viagens_feitas.append(viagem_obj)
+
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    return templates.TemplateResponse("viagens/viagens.html", {
+        "request": request,
+        "viagens_planejadas": viagens_planejadas,
+        "viagens_feitas": viagens_feitas,
+    })
+
+@router.get("/viagens/{viagem_id}")
+def read_viagem_detalhe(request: Request, viagem_id: int):
+    viagem_encontrada = None
+    lista_fotos = []
+    lista_cidades = []
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM viagens WHERE id = %s", (viagem_id,))
+        dados_viagem = cursor.fetchone()
+
+        print(dados_viagem)
+
+        cursor.execute("SELECT * FROM cidades_x_viagem WHERE viagem_id = %s ORDER BY nome_cidade", (viagem_id,))
+        dados_cidades = cursor.fetchall()
+
+        if dados_viagem:
+            cursor.execute("SELECT * FROM fotos_viagem where viagem_id = %s ORDER BY data_upload DESC", (viagem_id,))
+            dados_fotos = cursor.fetchall()
+
+            for foto in dados_fotos:
+                lista_fotos.append({
+                    "id": foto[0],
+                    "viagem_id": foto[1],
+                    "caminho_foto": foto[2],
+                    "data_upload": foto[3],
+                })
+
+            for cidade in dados_cidades:
+                lista_cidades.append({
+                    "id": cidade[0],
+                    "viagem_id": cidade[1],
+                    "nome_cidade": cidade[2],
+                    "visitada": cidade[3],
+                    "nota": cidade[4],
+                    "comentario": cidade[5],
+                })
+
+            viagem_encontrada = {
+                "id": dados_viagem[0],
+                "nome": dados_viagem[1],
+                "nota": dados_viagem[2],
+                "feita": dados_viagem[3],
+                "caminho_imagem": dados_viagem[4],
+                "comentarios": dados_viagem[5],
+            }
+
+        print(viagem_encontrada["caminho_imagem"])
+
+        cursor.close()
+        conn.close()
+
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
+
+    if not viagem_encontrada:
+        return templates.TemplateResponse(
+            "item_nao_encontrado.html",
+            {"request": request, "item": "Viagem"},
+            status_code=404
+        )
+
+    return templates.TemplateResponse(
+        "viagens/viagem_detalhes.html",
+        {"request": request, "viagem": viagem_encontrada, "fotos": lista_fotos, "dados_cidades": lista_cidades},
+    )
+
+
+@router.post("/viagens/novo")
+def create_viagem(
+        request: Request,
+        nome_viagem: str = Form(...),
+        cidades: list[str] = Form(...),
+        imagem: UploadFile = File(None)
+):
+    try:
+        # 1. IMPORTANTE: Inicializar a variável antes de tudo!
+        caminho_imagem = None
+
+        # 2. Lógica para salvar a imagem no disco (se ela existir)
+        TIPOS_VALIDOS = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
+
+        if imagem and imagem.filename:
+            if imagem.content_type not in TIPOS_VALIDOS:
+                print(f"Arquivo rejeitado: {imagem.content_type}")
+                # Aqui você pode decidir se para tudo ou se continua sem imagem
+            else:
+                extensao = imagem.filename.split(".")[-1]
+                nome_arquivo = f"{uuid.uuid4()}.{extensao}"
+
+                pasta_destino = Path("static/uploads")
+                pasta_destino.mkdir(parents=True, exist_ok=True)
+                caminho_final = pasta_destino / nome_arquivo
+
+                with open(caminho_final, "wb") as buffer:
+                    shutil.copyfileobj(imagem.file, buffer)
+
+                # Atualiza a variável com o caminho certo
+                caminho_imagem = f"uploads/{nome_arquivo}"
+
+        # 3. Lógica do Banco de Dados
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # Cria a Viagem Principal (Agora 'caminho_imagem' existe, seja None ou o link do arquivo)
+        cursor.execute(
+            "INSERT INTO viagens (nome, imagem_capa) VALUES (%s, %s) RETURNING id",
+            (nome_viagem, caminho_imagem)
+        )
+        viagem_id = cursor.fetchone()[0]
+
+        # Cria as Cidades com base nos nomes da lista
+        for nome_cidade in cidades:
+            # Remove espaços em branco extras se houver (Ex: " Paris " vira "Paris")
+            nome_limpo = nome_cidade.strip()
+
+            if nome_limpo:  # Só salva se não estiver vazio
+                cursor.execute(
+                    """
+                    INSERT INTO cidades_x_viagem (viagem_id, nome_cidade, caminho_foto, nota) 
+                    VALUES (%s, %s, 'default_city.png', 0)
+                    """,
+                    (viagem_id, nome_limpo)
+                )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+    except Exception as e:
+        print(f"Erro ao criar viagem: {e}")
+
+    return RedirectResponse(url="/viagens", status_code=303)
 
 def ler_temporadas_e_definir_nota_serie(conn, cursor, serie_id):
     cursor.execute(
@@ -1591,3 +1791,259 @@ def ler_temporadas_e_definir_nota_serie(conn, cursor, serie_id):
 
 
     conn.commit()
+
+
+def ler_cidades_e_definir_nota_viagem(conn, cursor, viagem_id):
+    cursor.execute("SELECT visitada, nota FROM cidades_x_viagem WHERE viagem_id = %s", (viagem_id,))
+    dados_cidades = cursor.fetchall()
+
+    num_cidades_total = len(dados_cidades)
+    num_cidades_visitadas = 0
+    nota_total = 0
+
+    for cidade in dados_cidades:
+        if cidade[0]:  # Se visitada == True
+            num_cidades_visitadas += 1
+            if cidade[1]:  # Se tem nota
+                nota_total += cidade[1]
+
+    nota_geral_viagem = None
+    if num_cidades_visitadas > 0:
+        nota_geral_viagem = round(nota_total / num_cidades_visitadas)
+
+    viagem_feita = (num_cidades_total == num_cidades_visitadas) and num_cidades_total > 0
+
+    cursor.execute(
+        "UPDATE viagens SET nota = %s, feita = %s WHERE id = %s",
+        (nota_geral_viagem, viagem_feita, viagem_id)
+    )
+    conn.commit()
+
+
+@router.get("/viagens/{viagem_id}/cidades/{cidade_id}")
+def read_cidade_detalhe(request: Request, viagem_id: int, cidade_id: int):
+    cidade_encontrada = None
+    viagem_encontrada = None
+    lista_fotos = []
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # Busca a Viagem (para a capa de fundo e o título)
+        cursor.execute("SELECT id, nome, imagem_capa FROM viagens WHERE id = %s", (viagem_id,))
+        dados_viagem = cursor.fetchone()
+        if dados_viagem:
+            viagem_encontrada = {"id": dados_viagem[0], "nome": dados_viagem[1], "caminho_imagem": dados_viagem[2]}
+
+        # Busca a Cidade Específica
+        cursor.execute("SELECT * FROM cidades_x_viagem WHERE id = %s", (cidade_id,))
+        dados_cidade = cursor.fetchone()
+
+        if dados_cidade:
+            # Busca as Fotos dessa cidade
+            cursor.execute("SELECT * FROM fotos_cidade WHERE cidade_id = %s ORDER BY data_upload DESC", (cidade_id,))
+            dados_fotos = cursor.fetchall()
+            for foto in dados_fotos:
+                lista_fotos.append({
+                    "id": foto[0], "cidade_id": foto[1], "caminho_foto": foto[2], "data_upload": foto[3]
+                })
+
+            cidade_encontrada = {
+                "id": dados_cidade[0],
+                "viagem_id": viagem_id,
+                "nome_cidade": dados_cidade[2],
+                "visitada": dados_cidade[3],
+                "nota": dados_cidade[4],
+                "comentario": dados_cidade[5],  # Usando índice 5 que é o comanterio no DB
+            }
+
+        cursor.close()
+        conn.close()
+
+    except Exception as e:
+        print(f"Erro ao ler cidade: {e}")
+
+    if not cidade_encontrada:
+        return templates.TemplateResponse(
+            "item_nao_encontrado.html",
+            {"request": request, "item": "Cidade"},
+            status_code=404
+        )
+
+    return templates.TemplateResponse(
+        "viagens/cidade_detalhes.html",
+        {"request": request, "cidade": cidade_encontrada, "viagem": viagem_encontrada, "fotos": lista_fotos}
+    )
+
+
+@router.post("/viagens/{viagem_id}/cidades/{cidade_id}/marcar-visitada")
+def marcar_cidade_visitada(request: Request, viagem_id: int, cidade_id: int, nota: int = Form(...)):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE cidades_x_viagem SET visitada = true, nota = %s WHERE id = %s",
+            (nota, cidade_id)
+        )
+        conn.commit()
+
+        ler_cidades_e_definir_nota_viagem(conn, cursor, viagem_id)
+
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao marcar cidade como visitada: {e}")
+
+    return RedirectResponse(url=f"/viagens/{viagem_id}", status_code=303)
+
+
+@router.get("/viagens/{viagem_id}/cidades/{cidade_id}/desmarcar-visitada")
+def desmarcar_visitada_cidade(viagem_id: int, cidade_id: int):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE cidades_x_viagem SET visitada = false, nota = null WHERE id = %s",
+            (cidade_id,)
+        )
+        conn.commit()
+
+        ler_cidades_e_definir_nota_viagem(conn, cursor, viagem_id)
+
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao desmarcar cidade: {e}")
+
+    return RedirectResponse(url=f"/viagens/{viagem_id}/cidades/{cidade_id}", status_code=303)
+
+
+@router.post("/viagens/{viagem_id}/cidades/alterar-nota/{cidade_id}")
+def alterar_nota_cidade(request: Request, viagem_id: int, cidade_id: int, nota: int = Form(...)):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("UPDATE cidades_x_viagem SET nota = %s WHERE id = %s", (nota, cidade_id))
+        conn.commit()
+
+        ler_cidades_e_definir_nota_viagem(conn, cursor, viagem_id)
+
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao alterar nota cidade: {e}")
+
+    return RedirectResponse(url=f"/viagens/{viagem_id}/cidades/{cidade_id}", status_code=303)
+
+
+@router.post("/viagens/{viagem_id}/cidades/update-comentario/{cidade_id}")
+def update_comentario_cidade(viagem_id: int, cidade_id: int, comentario: str = Form(default="")):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # Atenção ao typo no banco (comanterio)
+        cursor.execute("UPDATE cidades_x_viagem SET comentario = %s WHERE id = %s", (comentario, cidade_id))
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao atualizar comentario: {e}")
+
+    return RedirectResponse(url=f"/viagens/{viagem_id}/cidades/{cidade_id}", status_code=303)
+
+@router.post("/viagens/update-comentario/{viagem_id}")
+def update_comentario_viagem(viagem_id: int, comentario: str = Form(default="")):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE viagens SET comentario = %s WHERE id = %s",
+            (comentario, viagem_id)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao atualizar comentario da viagem: {e}")
+
+    return RedirectResponse(url=f"/viagens/{viagem_id}", status_code=303)
+
+
+@router.post("/viagens/{viagem_id}/cidades/{cidade_id}/adicionar-foto")
+def adicionar_foto_cidade(viagem_id: int, cidade_id: int, arquivo: UploadFile = File(...)):
+    if arquivo.content_type not in ["image/jpeg", "image/png", "image/webp", "image/jpg"]:
+        return RedirectResponse(url=f"/viagens/{viagem_id}/cidades/{cidade_id}?erro=arquivo_invalido", status_code=303)
+
+    try:
+        extensao = arquivo.filename.split(".")[-1]
+        nome_novo = f"{uuid.uuid4()}.{extensao}"
+        caminho_relativo = f"uploads/{nome_novo}"
+
+        caminho_absoluto = Path("static") / caminho_relativo
+        with open(caminho_absoluto, "wb") as buffer:
+            shutil.copyfileobj(arquivo.file, buffer)
+
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # Insere na Cidade
+        cursor.execute(
+            "INSERT INTO fotos_cidade (cidade_id, caminho_foto) VALUES (%s, %s)",
+            (cidade_id, caminho_relativo)
+        )
+        # Insere na Viagem (Para aparecer na galeria geral também!)
+        cursor.execute(
+            "INSERT INTO fotos_viagem (viagem_id, caminho_foto) VALUES (%s, %s)",
+            (viagem_id, caminho_relativo)
+        )
+
+        conn.commit()
+        conn.close()
+
+    except Exception as e:
+        print(f"Erro ao salvar foto: {e}")
+
+    return RedirectResponse(url=f"/viagens/{viagem_id}/cidades/{cidade_id}", status_code=303)
+
+
+@router.post("/cidades/fotos/remover/{foto_id}")
+def remover_foto_cidade(foto_id: int):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT caminho_foto, cidade_id FROM fotos_cidade WHERE id = %s", (foto_id,))
+        row = cursor.fetchone()
+
+        if row:
+            caminho_relativo = row[0]
+            cidade_id = row[1]
+            caminho_arquivo = Path("static") / caminho_relativo
+
+            if os.path.exists(caminho_arquivo):
+                os.remove(caminho_arquivo)
+
+            # Apaga da tabela de cidades e da tabela geral de viagens (Fantasma)
+            cursor.execute("DELETE FROM fotos_cidade WHERE id = %s", (foto_id,))
+            cursor.execute("DELETE FROM fotos_viagem WHERE caminho_foto = %s", (caminho_relativo,))
+
+            conn.commit()
+
+            # Precisamos do id da viagem para redirecionar de volta.
+            # Como a rota não recebe viagem_id, fazemos um JOIN rápido:
+            cursor.execute("SELECT viagem_id FROM cidades_x_viagem WHERE id = %s", (cidade_id,))
+            viagem_id = cursor.fetchone()[0]
+
+            conn.close()
+            return RedirectResponse(url=f"/viagens/{viagem_id}/cidades/{cidade_id}", status_code=303)
+
+    except Exception as e:
+        print(f"Erro ao deletar foto: {e}")
+        return RedirectResponse(url="/viagens", status_code=303)

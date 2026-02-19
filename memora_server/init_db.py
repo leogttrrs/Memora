@@ -68,6 +68,18 @@ def criar_tabelas():
             );
         """)
 
+        print("Verificando tabela 'viagens'...")
+        cursor.execute("""
+                            CREATE TABLE IF NOT EXISTS viagens (
+                                id SERIAL PRIMARY KEY,
+                                nome VARCHAR(255) NOT NULL,
+                                nota INT CHECK (nota >= 1 AND nota <= 10),
+                                feita BOOLEAN DEFAULT FALSE,
+                                imagem_capa VARCHAR(255),
+                                comentario TEXT
+                            );
+                        """)
+
         # 2. Adiciona colunas novas de forma segura (só adiciona se não existir)
         # O PostgreSQL permite "ADD COLUMN IF NOT EXISTS"
         print("Atualizando colunas de 'filmes'...")
@@ -102,6 +114,43 @@ def criar_tabelas():
                         FOREIGN KEY (receita_id) REFERENCES receitas(id) ON DELETE CASCADE
                     );
                 """)
+
+        print("Verificando tabela 'fotos_viagem'...")
+        cursor.execute("""
+                            CREATE TABLE IF NOT EXISTS fotos_viagem (
+                                id SERIAL PRIMARY KEY,
+                                viagem_id INT NOT NULL,
+                                caminho_foto VARCHAR(255) NOT NULL,
+                                data_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                FOREIGN KEY (viagem_id) REFERENCES viagens(id) ON DELETE CASCADE
+                            );
+                        """)
+
+        print("Verificando tabela 'cidades_x_viagem'...")
+        cursor.execute("""
+                            CREATE TABLE IF NOT EXISTS cidades_x_viagem (
+                                id SERIAL PRIMARY KEY,
+                                viagem_id INT NOT NULL,
+                                nome_cidade VARCHAR NOT NULL,
+                                visitada BOOLEAN DEFAULT FALSE,
+                                nota INT CHECK (nota >= 0 AND nota <= 10),
+                                comentario TEXT,
+                                caminho_foto VARCHAR(255) NOT NULL,
+                                data_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                FOREIGN KEY (viagem_id) REFERENCES viagens(id) ON DELETE CASCADE
+                            );
+                        """)
+
+        print("Verificando tabela 'fotos_cidade'...")
+        cursor.execute("""
+                                    CREATE TABLE IF NOT EXISTS fotos_cidade (
+                                        id SERIAL PRIMARY KEY,
+                                        cidade_id INT NOT NULL,
+                                        caminho_foto VARCHAR(255) NOT NULL,
+                                        data_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                        FOREIGN KEY (cidade_id) REFERENCES cidades_x_viagem(id) ON DELETE CASCADE
+                                    );
+                                """)
 
         print("Verificando tabela 'fotos_jogo'...")
         cursor.execute("""

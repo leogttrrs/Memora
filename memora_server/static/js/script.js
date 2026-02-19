@@ -78,3 +78,33 @@ function abrirLightbox(caminhoImagem) {
 function fecharLightbox() {
     document.getElementById('lightbox').style.display = 'none';
 }
+
+function adicionarCampoCidade() {
+    const container = document.getElementById('cities-container');
+
+    // Cria a div que envolve (wrapper)
+    const div = document.createElement('div');
+    div.className = 'city-input-group';
+
+    // Cria o input novo
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.name = 'cidades'; // O segredo está aqui: mesmo nome!
+    input.placeholder = 'Nome da cidade';
+    input.required = true;
+    input.autocomplete = 'off';
+
+    // Cria o botão de remover (X)
+    const btnRemove = document.createElement('button');
+    btnRemove.type = 'button';
+    btnRemove.className = 'btn-remove-city';
+    btnRemove.innerHTML = '×';
+    btnRemove.onclick = function() {
+        container.removeChild(div);
+    };
+
+    // Monta tudo
+    div.appendChild(input);
+    div.appendChild(btnRemove);
+    container.appendChild(div);
+}

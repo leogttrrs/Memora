@@ -1139,3 +1139,90 @@ body {
     font-style: italic;
     opacity: 0.7;
 }
+
+/* Container de cada linha de cidade (para alinhar o input com o botão de remover) */
+.city-input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px; /* Espaço entre uma cidade e outra */
+    align-items: center;
+}
+
+/* Garante que o input ocupe todo o espaço disponível */
+.city-input-group input {
+    margin-bottom: 0 !important; /* Remove a margem padrão do input pra alinhar com o botão */
+    flex: 1;
+}
+
+/* Botão pequeno de "Remover" (X vermelho) */
+.btn-remove-city {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid #ef4444;
+    width: 40px;
+    height: 48px; /* Mesma altura do input aprox */
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-remove-city:hover {
+    background-color: #ef4444;
+    color: white;
+}
+
+/* Botão de "+ Adicionar Cidade" */
+.btn-add-city {
+    background-color: transparent;
+    border: 1px dashed #38bdf8;
+    color: #38bdf8;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    width: 100%; /* Ocupa a largura toda */
+    transition: all 0.2s;
+    margin-top: 5px;
+}
+
+.btn-add-city:hover {
+    background-color: rgba(56, 189, 248, 0.1);
+    border-style: solid;
+}
+
+.error-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 65vh; /* Centraliza verticalmente na tela */
+            position: relative;
+            text-align: center;
+        }
+
+        .error-text {
+            font-size: 2.5rem;
+            color: #e2e8f0;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .error-subtext {
+            color: #94a3b8;
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            max-width: 500px;
+            line-height: 1.5;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }

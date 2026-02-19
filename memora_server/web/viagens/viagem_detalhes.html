@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ viagem.nome }} - Detalhes</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/memora.png">
+</head>
+<body>
+    <header class="top-bar">
+        <div style="position: absolute; left: 20px;">
+            <a href="/viagens" style="color: #38bdf8; text-decoration: none;">⬅ Voltar</a>
+        </div>
+        <h1>Memora</h1>
+    </header>
+
+    <div class="container" style="text-align: center; margin-top: 50px;">
+        <h1 style="font-size: 3rem; color: #fff;">{{ viagem.nome }}</h1>
+        <div class="movie-cover-container">
+            <form action="/viagens/{{ viagem.id }}/update-capa" method="post" enctype="multipart/form-data" id="form-capa">
+
+                <label for="input-trocar-capa" class="cover-wrapper" title="Clique para alterar a capa">
+
+                    <input type="file" name="imagem" id="input-trocar-capa" accept="image/*" style="display: none;" onchange="document.getElementById('form-capa').submit()">
+
+                    {% if viagem.caminho_imagem %}
+                        {% if viagem.caminho_imagem.startswith('http') %}
+                            <img src="{{ viagem.caminho_imagem }}" class="movie-cover">
+                        {% else %}
+                            <img src="/static/{{ viagem.caminho_imagem }}" class="movie-cover">
+                        {% endif %}
+                    {% else %}
+                        <img src="/static/default_cover.png" alt="Sem capa" class="movie-cover generic">
+                    {% endif %}
+
+                    <div class="edit-overlay">
+                        <span>📷 Alterar Capa</span>
+                    </div>
+
+                </label>
+            </form>
+        </div>
+
+        <div style="margin: 30px 0;">
+            <div style="margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                {% if viagem.nota %}
+                    <h2>Sua Nota Geral:</h2>
+                    {% if viagem.nota >= 8 %}
+                        <span class="rating-badge rating-high" style="font-size: 1.2rem;">★ {{ viagem.nota }}</span>
+                    {% elif viagem.nota >= 5 %}
+                        <span class="rating-badge rating-mid" style="font-size: 1.2rem;">★ {{ viagem.nota }}</span>
+                    {% else %}
+                            <span class="rating-badge rating-low" style="font-size: 1.2rem;">★ {{ viagem.nota }}</span>
+                    {% endif %}
+                {% else %}
+                    <div style="margin-bottom: 20px;">
+                         <p style="color: #64748b; font-style: italic;">
+                             Visite e avalie as cidades abaixo para gerar a nota da viagem.
+                         </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="seasons-wrapper">
+            <h1 style="color: #94a3b8; font-size: 1.5rem; margin-bottom: 15px;">Cidades:</h1>
+
+            <div class="seasons-grid">
+                {% for cidade in dados_cidades %}
+                    <a href="/viagens/{{ viagem.id }}/cidades/{{ cidade.id }}"
+                       class="season-btn {{ 'watched' if cidade.visitada else '' }}"
+                       title="Ver detalhes da Cidade {{ cidade.nome_cidade }}">
+
+                        {{ cidade.nome_cidade }}
+
+                        {% if cidade.visitada %}
+                            <span class="check-icon">✓</span>
+                            <span class="season-rate-badge">{{cidade.nota}}</span>
+                        {% endif %}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <h1 style="color: #94a3b8; margin-bottom: 10px;">Comentários da viagem:</h1>
+
+        <div class="comments-section">
+            <form action="/viagens/update-comentario/{{ viagem.id }}" method="post">
+
+                <textarea
+                    name="comentario"
+                    class="comment-box"
+                    rows="5"
+                >{{ viagem.comentarios or "" }}</textarea>
+
+                <div style="text-align: right; margin-top: 10px;">
+                    <button type="submit" class="btn-save-comment">
+                        💾 Salvar Anotações
+                    </button>
+                </div>
+            </form>
+        </div>
+
+
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; margin-top: 40px; margin-bottom: 20px;">
+            <h1 style="color: #94a3b8; margin: 0;">Galeria da viagem</h1>
+
+            <form action="/viagens/{{ viagem.id }}/adicionar-foto" method="post" enctype="multipart/form-data" id="form-add-foto">
+                <label for="input-add-foto" class="btn-add-photo" title="Adicionar nova foto">
+                    + Adicionar foto
+                </label>
+                <input type="file" name="arquivo" id="input-add-foto" accept="image/*" style="display: none;" onchange="document.getElementById('form-add-foto').submit()">
+            </form>
+        </div>
+
+        {% if fotos %}
+            <div class="gallery-grid">
+                {% for foto in fotos %}
+                    <div class="photo-card">
+                        <img src="/static/{{ foto.caminho_foto}}"
+                             class="gallery-img"
+                             onclick="abrirLightbox('/static/{{ foto.caminho_foto }}')">
+
+                        <form action="/viagens/fotos/remover/{{ foto.id }}" method="post" onsubmit="return confirm('Apagar esta foto?')">
+                            <button type="submit" class="btn-delete-photo">×</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: #64748b; font-style: italic; margin-top: 50px;">Nenhuma foto registrada...</p>
+        {% endif %}
+
+        <div id="lightbox" class="lightbox-overlay" onclick="fecharLightbox()">
+            <span class="lightbox-close">&times;</span>
+            <img id="lightbox-img" src="">
+        </div>
+
+        <form action="/viagens/remove-viagem/{{ viagem.id }}" method="post" onsubmit="return confirmarRemocao('viagem')">
+            <div class="action-footer">
+                <button type="submit" class="btn-delete" style="width: 100%;">
+                    {{ 'Deletar Memórias' if viagem.feita else 'Cancelar Plano' }}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="/static/js/script.js"></script>
+</body>
+</html>

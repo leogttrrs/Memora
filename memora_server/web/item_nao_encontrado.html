@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ item }} não encontrado - Memora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/memora.png">
+</head>
+<body style="overflow-x: hidden;">
+    <header class="top-bar">
+        <div style="position: absolute; left: 20px;">
+            <a href="#" onclick="history.back(); return false;" style="color: #38bdf8; text-decoration: none;">⬅ Voltar</a>
+        </div>
+        <h1>Memora</h1>
+    </header>
+
+    <div class="container error-container">
+
+        <h1 class="error-text">
+            {{ item }} não encontrado(a) 😢
+        </h1>
+
+        <p class="error-subtext">
+            Parece que essa memória se perdeu no tempo, foi apagada ou o link que você acessou está quebrado.
+        </p>
+
+        <div class="action-buttons">
+            <a href="#" onclick="history.back(); return false;" class="btn-cancel" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
+                PÁGINA ANTERIOR
+            </a>
+
+            <a href="/" class="add-btn" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
+                IR PARA O MENU
+            </a>
+        </div>
+    </div>
+</body>
+</html>

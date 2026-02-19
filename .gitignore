@@ -19,3 +19,9 @@ Thumbs.db
 /memora_server/static/uploads
 
 /memora_server/db_scripts.py
+
+/memora_server/init_db.py
+
+/memora_server/clean_db.py
+
+/memora_server/teste.py
