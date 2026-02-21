@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Memora - Gerenciar Círculo</title>
+    <link rel="icon" href="/static/memora.png">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="top-bar">
+        <div style="position: absolute; left: 20px;">
+            <a href="/" style="color: #38bdf8; text-decoration: none;">⬅ Voltar</a>
+        </div>
+        <h1>Memora</h1>
+    </header>
+
+    <div class="container" style="margin-top: 30px; max-width: 600px;">
+        <div class="section-title" style="margin-top: 0;">
+            <h1 style="margin-top: 0;">Gerenciar Círculo</h1>
+        </div>
+
+        <div class="form-card" style="margin-top: 20px; padding: 30px;">
+            <h3 style="color: #38bdf8; margin-bottom: 20px; text-align: left;">Aparência</h3>
+
+            <form action="/circulos/{{ circulo.id }}/editar" method="post" style="display: flex; flex-direction: column; gap: 15px;">
+
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <input type="text" name="emoji" id="custom-emoji" value="{{ circulo.emoji }}" class="custom-emoji-input" style="width: 60px; height: 60px; font-size: 1.8rem; margin: 0; padding: 0; text-indent: 0; cursor: default;" required readonly>
+
+                    <input type="text" name="nome_circulo" value="{{ circulo.nome }}" class="input-nota" style="flex: 1; text-align: left; margin: 0;" required autocomplete="off">
+                </div>
+
+                <div class="emoji-selector" style="justify-content: flex-start; margin: 5px 0 0 0;">
+                    <span class="emoji-option" onclick="selecionarEmoji(this, '🪐')">🪐</span>
+                    <span class="emoji-option" onclick="selecionarEmoji(this, '⭐')">⭐</span>
+                    <span class="emoji-option" onclick="selecionarEmoji(this, '❤️')">❤️</span>
+                    <span class="emoji-option" onclick="selecionarEmoji(this, '🔥')">🔥</span>
+                    <span class="emoji-option" onclick="selecionarEmoji(this, '🏕️')">🏕️</span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; position: relative;">
+                    <button type="button" id="btn-open-picker" style="background: transparent; border: 1px dashed #334155; color: #94a3b8; padding: 5px 15px; border-radius: 20px; cursor: pointer; transition: all 0.2s;">
+                        😀 Ver todos os emojis...
+                    </button>
+
+                    <div id="emoji-picker-wrapper" style="display: none; position: absolute; left: 0; top: 40px; z-index: 1000; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border-radius: 8px;">
+                        <emoji-picker class="dark" style="height: 250px; width: 100%; max-width: 320px;"></emoji-picker>
+                    </div>
+
+                    <button type="submit" class="add-btn" style="padding: 10px 20px; font-size: 0.9rem;">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="form-card" style="margin-top: 30px; padding: 30px;">
+            <h3 style="color: #38bdf8; margin-bottom: 20px; text-align: left;">Convidar Amigo</h3>
+            <form action="/circulos/{{ circulo.id }}/convidar" method="post" style="display: flex; gap: 15px;">
+                <input type="email" name="email_convidado" placeholder="Digite o e-mail do Google da pessoa..." class="input-nota" style="flex: 1; text-align: left; margin: 0;" required>
+                <button type="submit" class="btn-confirm" style="padding: 10px 20px;">Enviar Convite</button>
+            </form>
+        </div>
+
+        <div class="form-card" style="margin-top: 30px; padding: 30px; text-align: left;">
+            <h3 style="color: #38bdf8; margin-bottom: 20px;">Membros do Círculo</h3>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                {% for membro in membros %}
+                <div style="display: flex; justify-content: space-between; align-items: center; background-color: #0f172a; padding: 10px 15px; border-radius: 8px; border: 1px solid #334155;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <img src="{{ membro.foto_url }}" style="width: 40px; height: 40px; border-radius: 50%;">
+                        <div>
+                            <strong style="color: #fff; display: block;">{{ membro.nome }}</strong>
+                            <span style="font-size: 0.8rem; color: #94a3b8;">{{ membro.email }}</span>
+                        </div>
+                    </div>
+                    {% if membro.papel == 'admin' %}
+                        <span style="color: #facc15; font-weight: bold; font-size: 0.9rem;">👑 Admin</span>
+                    {% else %}
+                        <form action="/circulos/{{ circulo.id }}/remover-membro/{{ membro.id }}" method="post">
+                            <button type="submit" class="btn-cancel" style="padding: 5px 10px; font-size: 0.8rem;" onclick="return confirm('Tem certeza que deseja remover esta pessoa?')">Remover</button>
+                        </form>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-card" style="margin-top: 30px; margin-bottom: 50px; padding: 30px; border: 1px solid #ef4444; background-color: rgba(239, 68, 68, 0.05);">
+            <h3 style="color: #ef4444; margin-bottom: 10px; text-align: left;">Zona de Perigo</h3>
+            <p style="color: #94a3b8; font-size: 0.9rem; text-align: left; margin-bottom: 20px;">
+                Ao excluir este círculo, todas as memórias, filmes, jogos e membros associados a ele serão apagados para sempre. Esta ação não pode ser desfeita.
+            </p>
+            <form action="/circulos/{{ circulo.id }}/excluir" method="post" style="text-align: left;">
+                <button type="submit" class="btn-cancel" style="padding: 12px 20px; font-weight: bold; background-color: transparent; color: #ef4444; border: 1px solid #ef4444;" onclick="return confirm('🚨 ATENÇÃO: Tem certeza absoluta que deseja EXCLUIR este círculo e tudo dentro dele? Esta ação é irreversível.')" onmouseover="this.style.backgroundColor='#ef4444'; this.style.color='#fff'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ef4444'">
+                    Excluir Círculo Definitivamente
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
+
+    <script>
+        const emojiInput = document.getElementById('custom-emoji');
+        const btnOpenPicker = document.getElementById('btn-open-picker');
+        const pickerWrapper = document.getElementById('emoji-picker-wrapper');
+        const emojiPicker = document.querySelector('emoji-picker');
+
+        // Atalhos rápidos
+        function selecionarEmoji(elemento, emojiSelecionado) {
+            document.querySelectorAll('.emoji-option').forEach(el => el.classList.remove('selected'));
+            elemento.classList.add('selected');
+            emojiInput.value = emojiSelecionado;
+            pickerWrapper.style.display = 'none';
+        }
+
+        // Abre/Fecha o teclado
+        btnOpenPicker.addEventListener('click', () => {
+            pickerWrapper.style.display = pickerWrapper.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Evento do teclado completo
+        emojiPicker.addEventListener('emoji-click', event => {
+            emojiInput.value = event.detail.unicode;
+            pickerWrapper.style.display = 'none';
+            document.querySelectorAll('.emoji-option').forEach(el => el.classList.remove('selected'));
+        });
+    </script>
+</body>
+</html>

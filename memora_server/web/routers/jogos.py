@@ -15,15 +15,25 @@ router = APIRouter(
     tags=["jogos"]
 )
 
+
 @router.get("/")
 def read_jogos(request: Request):
+    circulo_ativo = request.session.get('circulo_ativo')
+    user = request.session.get('user')
+    if not circulo_ativo:
+        return RedirectResponse(url="/")
+
     jogos_planejados = []
     jogos_finalizados = []
 
     try:
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT id, nome, nota FROM jogos ORDER BY id DESC")
+
+        cursor.execute(
+            "SELECT id, nome, nota FROM jogos WHERE circulo_id = %s ORDER BY id DESC",
+            (circulo_ativo['id'],)
+        )
         jogos_dados = cursor.fetchall()
 
         for item in jogos_dados:
@@ -44,12 +54,18 @@ def read_jogos(request: Request):
     return templates.TemplateResponse("jogos/jogos.html", {
         "request": request,
         "jogos_planejados": jogos_planejados,
-        "jogos_finalizados": jogos_finalizados
+        "jogos_finalizados": jogos_finalizados,
+        "circulo_ativo": circulo_ativo,
+        "user": user
     })
 
 
 @router.post("/novo")
 def create_jogo(request: Request, nome_jogo: str = Form(...), imagem: UploadFile = File(None)):
+    circulo_ativo = request.session.get('circulo_ativo')
+    if not circulo_ativo:
+        return RedirectResponse(url="/")
+
     try:
         caminho_imagem = None
         TIPOS_VALIDOS = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
@@ -72,7 +88,10 @@ def create_jogo(request: Request, nome_jogo: str = Form(...), imagem: UploadFile
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("INSERT INTO jogos (nome, imagem_capa) VALUES (%s, %s)", (nome_jogo, caminho_imagem))
+        cursor.execute(
+            "INSERT INTO jogos (circulo_id, nome, imagem_capa) VALUES (%s, %s, %s)",
+            (circulo_ativo['id'], nome_jogo, caminho_imagem)
+        )
         conn.commit()
         cursor.close()
         conn.close()
@@ -274,6 +293,11 @@ def remover_foto_jogo(foto_id: int):
 
 @router.get("/{jogo_id}")
 def read_jogo_detalhe(request: Request, jogo_id: int):
+    circulo_ativo = request.session.get('circulo_ativo')
+    user = request.session.get('user')
+    if not circulo_ativo:
+        return RedirectResponse(url="/")
+
     jogo_encontrado = None
     lista_fotos = []
 
@@ -281,7 +305,7 @@ def read_jogo_detalhe(request: Request, jogo_id: int):
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM jogos WHERE id = %s", (jogo_id,))
+        cursor.execute("SELECT * FROM jogos WHERE id = %s AND circulo_id = %s", (jogo_id, circulo_ativo['id']))
         dados_jogo = cursor.fetchone()
 
         if dados_jogo:
@@ -298,18 +322,19 @@ def read_jogo_detalhe(request: Request, jogo_id: int):
 
             jogo_encontrado = {
                 "id": dados_jogo[0],
-                "nome": dados_jogo[1],
-                "nota": dados_jogo[2],
-                "finalizado": dados_jogo[3],
-                "caminho_imagem": dados_jogo[4],
-                "comentarios": dados_jogo[5],
+                "circulo_id": dados_jogo[1],
+                "nome": dados_jogo[2],
+                "nota": dados_jogo[3],
+                "finalizado": dados_jogo[4],
+                "caminho_imagem": dados_jogo[5],
+                "comentarios": dados_jogo[6],
             }
 
         cursor.close()
         conn.close()
 
     except Exception as e:
-        print(f"Erro ao salvar: {e}")
+        print(f"Erro ao buscar detalhes: {e}")
 
     if not jogo_encontrado:
         return templates.TemplateResponse(
@@ -320,5 +345,5 @@ def read_jogo_detalhe(request: Request, jogo_id: int):
 
     return templates.TemplateResponse(
         "jogos/jogo_detalhes.html",
-        {"request": request,"jogo": jogo_encontrado, "fotos": lista_fotos}
+        {"request": request, "jogo": jogo_encontrado, "fotos": lista_fotos, "circulo_ativo": circulo_ativo, "user": user}
     )

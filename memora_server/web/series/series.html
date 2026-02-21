@@ -10,9 +10,15 @@
 <body style="overflow-x: hidden;">
     <header class="top-bar">
         <div style="position: absolute; left: 20px;">
-            <a href="/" style="color: #38bdf8; text-decoration: none;">⬅ Voltar</a>
+            <a href="/dashboard" style="color: #38bdf8; text-decoration: none;">⬅ Voltar</a>
         </div>
-        <h1>Memora</h1>
+        <h1>Memora - {{ circulo_ativo.nome }} {{ circulo_ativo.emoji }}</h1>
+        {% if user %}
+            <div style="position: absolute; right: 20px; top: 15px; display: flex; align-items: center; gap: 15px;">
+                <img src="{{ user.foto_url }}" alt="Foto de perfil" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #38bdf8;">
+                <a href="/logout" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 0.9rem;">Sair</a>
+            </div>
+        {% endif %}
     </header>
     <div id="alerta-erro" style="display: none; background: #ef4444; color: white; padding: 15px; text-align: center; margin: 10px;">
         ❌ <strong>Erro:</strong> Apenas arquivos de imagem (JPG, PNG) são permitidos!

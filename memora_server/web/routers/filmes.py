@@ -15,15 +15,25 @@ router = APIRouter(
     tags=["filmes"]
 )
 
+
 @router.get("/")
 def read_filmes(request: Request):
+    circulo_ativo = request.session.get('circulo_ativo')
+    user = request.session.get('user')
+    if not circulo_ativo:
+        return RedirectResponse(url="/")
+
     filmes_planejados = []
     filmes_assistidos = []
 
     try:
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT id, nome, nota FROM filmes ORDER BY id DESC")
+
+        cursor.execute(
+            "SELECT id, nome, nota FROM filmes WHERE circulo_id = %s ORDER BY id DESC",
+            (circulo_ativo['id'],)
+        )
         filmes_dados = cursor.fetchall()
 
         for item in filmes_dados:
@@ -44,12 +54,18 @@ def read_filmes(request: Request):
     return templates.TemplateResponse("filmes/filmes.html", {
         "request": request,
         "filmes_planejados": filmes_planejados,
-        "filmes_assistidos": filmes_assistidos
+        "filmes_assistidos": filmes_assistidos,
+        "circulo_ativo": circulo_ativo,
+        "user": user,
     })
 
 
 @router.post("/novo")
 def create_filme(request: Request, nome_filme: str = Form(...), imagem: UploadFile = File(None)):
+    circulo_ativo = request.session.get('circulo_ativo')
+    if not circulo_ativo:
+        return RedirectResponse(url="/")
+
     try:
         caminho_imagem = None
         TIPOS_VALIDOS = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
@@ -74,7 +90,10 @@ def create_filme(request: Request, nome_filme: str = Form(...), imagem: UploadFi
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("INSERT INTO filmes (nome, imagem_capa) VALUES (%s, %s)", (nome_filme, caminho_imagem))
+        cursor.execute(
+            "INSERT INTO filmes (circulo_id, nome, imagem_capa) VALUES (%s, %s, %s)",
+            (circulo_ativo['id'], nome_filme, caminho_imagem)
+        )
         conn.commit()
         cursor.close()
         conn.close()
@@ -279,14 +298,18 @@ def remover_foto_filme(foto_id: int):
 
 @router.get("/{filme_id}")
 def read_filme_detalhe(request: Request, filme_id: int):
+    circulo_ativo = request.session.get('circulo_ativo')
+    user = request.session.get('user')
+    if not circulo_ativo:
+        return RedirectResponse(url="/")
+
     filme_encontrado = None
     lista_fotos = []
 
     try:
         conn = get_connection()
         cursor = conn.cursor()
-
-        cursor.execute("SELECT * FROM filmes WHERE id = %s", (filme_id,))
+        cursor.execute("SELECT * FROM filmes WHERE id = %s AND circulo_id = %s", (filme_id, circulo_ativo['id']))
         dados_filme = cursor.fetchone()
 
         if dados_filme:
@@ -303,11 +326,12 @@ def read_filme_detalhe(request: Request, filme_id: int):
 
             filme_encontrado = {
                 "id": dados_filme[0],
-                "nome": dados_filme[1],
-                "nota": dados_filme[2],
-                "assistido": dados_filme[3],
-                "caminho_imagem": dados_filme[4],
-                "comentarios": dados_filme[5],
+                "circulo_id": dados_filme[1],
+                "nome": dados_filme[2],
+                "nota": dados_filme[3],
+                "assistido": dados_filme[4],
+                "caminho_imagem": dados_filme[5],
+                "comentarios": dados_filme[6],
             }
 
         cursor.close()
@@ -325,5 +349,11 @@ def read_filme_detalhe(request: Request, filme_id: int):
 
     return templates.TemplateResponse(
         "filmes/filme_detalhes.html",
-        {"request": request,"filme": filme_encontrado, "fotos": lista_fotos}
+        {
+            "request": request,
+            "filme": filme_encontrado,
+            "fotos": lista_fotos,
+            "circulo_ativo": circulo_ativo,
+            "user": user
+        }
     )

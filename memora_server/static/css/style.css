@@ -66,13 +66,21 @@ body {
     position: relative;
 }
 
+.ola {
+    position: absolute;
+    top: 90px;
+    left: 50%;
+    transform: translateX(-50%); /* O truque mágico para centralizar */
+    margin: 0 !important;
+}
+
 .section-title h1 {
     font-size: 5rem;
     line-height: 1;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: -2px;
-    margin: 0;
+    margin-top: 20px;
     background: -webkit-linear-gradient(#fff, #94a3b8);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -919,6 +927,7 @@ body {
     align-items: center;
     justify-content: center;
     backdrop-filter: blur(5px);
+    overflow-y: auto;
 }
 
 .modal-box {
@@ -1097,4 +1106,67 @@ body {
     gap: 20px;
     flex-wrap: wrap;
     justify-content: center;
+}
+
+/*
+    Emojis
+*/
+
+/* No seu style.css, procure por .custom-emoji-input e mude o cursor: */
+.custom-emoji-input {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #334155;
+    border: 2px solid #38bdf8;
+    color: #fff;
+    font-size: 2.5rem;
+    text-align: center;
+    display: block;
+    margin: 0 auto;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+    transition: all 0.3s ease;
+    cursor: default;
+    -moz-appearance: textfield;
+}
+
+.custom-emoji-input:focus {
+    outline: none;
+    background-color: #0f172a;
+    transform: scale(1.1);
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.6);
+}
+
+.emoji-selector {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+    margin-bottom: 20px;
+}
+
+.emoji-option {
+    font-size: 1.5rem; /* Um pouco menor para não brigar com o principal */
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    opacity: 0.5;
+    background-color: transparent;
+}
+
+.emoji-title {
+    -webkit-text-fill-color: initial;
+    text-shadow: none;
+    font-size: 5rem;
+    line-height: 1;
+    font-weight: 900;
+}
+
+.emoji-option.selected {
+    background-color: #334155;
+    opacity: 1;
+    transform: scale(1.2);
+    border: 2px solid #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
 }

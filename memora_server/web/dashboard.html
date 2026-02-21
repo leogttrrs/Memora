@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memora - {{ circulo_ativo.nome }}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/memora.png">
+</head>
+<body>
+    <header class="top-bar">
+        <div style="position: absolute; left: 20px; top: 20px;">
+            <a href="/" style="color: #38bdf8; text-decoration: none;">⬅ Trocar Círculo</a>
+        </div>
+
+        <h1>Memora</h1>
+        {% if user %}
+            <div style="position: absolute; right: 20px; top: 15px; display: flex; align-items: center; gap: 15px;">
+                <img src="{{ user.foto_url }}" alt="Foto de perfil" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #38bdf8;">
+                <a href="/logout" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 0.9rem;">Sair</a>
+            </div>
+        {% endif %}
+    </header>
+
+    <div class="container" style="text-align: center; margin-top: 80px;">
+        <div class="section-title" style="margin-top: 5px;">
+            <span class="emoji-title">{{ circulo_ativo.emoji }}</span>
+            <h1>{{ circulo_ativo.nome }}</h1>
+        </div>
+
+        <div class="dashboard-grid" style="margin-top: 40px;">
+            <a href="/filmes" class="menu-card" style="text-decoration: none;">
+                <div class="icon">🍿</div>
+                <h3>Filmes</h3>
+            </a>
+            <a href="/series" class="menu-card" style="text-decoration: none;">
+                <div class="icon">📺</div>
+                <h3>Séries</h3>
+            </a>
+            <a href="/jogos" class="menu-card" style="text-decoration: none;">
+                <div class="icon">🎮</div>
+                <h3>Jogos</h3>
+            </a>
+            <a href="/receitas" class="menu-card" style="text-decoration: none;">
+                <div class="icon">🍳</div>
+                <h3>Receitas</h3>
+            </a>
+            <a href="/viagens" class="menu-card" style="text-decoration: none;">
+                <div class="icon">✈️</div>
+                <h3>Viagens</h3>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

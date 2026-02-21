@@ -44,6 +44,11 @@ def ler_cidades_e_definir_nota_viagem(conn, cursor, viagem_id):
 
 @router.get("/")
 def read_viagens(request: Request):
+    circulo_ativo = request.session.get('circulo_ativo')
+    user = request.session.get('user')
+    if not circulo_ativo:
+        return RedirectResponse(url="/")
+
     viagens_planejadas = []
     viagens_feitas = []
 
@@ -51,7 +56,7 @@ def read_viagens(request: Request):
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM viagens ORDER BY id DESC")
+        cursor.execute("SELECT id, nome, nota, feita FROM viagens WHERE circulo_id = %s ORDER BY id DESC", (circulo_ativo['id'],))
         viagens_dados = cursor.fetchall()
 
         for item in viagens_dados:
@@ -74,12 +79,14 @@ def read_viagens(request: Request):
         cursor.close()
         conn.close()
     except Exception as e:
-        print(f"Erro ao salvar: {e}")
+        print(f"Erro ao ler viagens: {e}")
 
     return templates.TemplateResponse("viagens/viagens.html", {
         "request": request,
         "viagens_planejadas": viagens_planejadas,
         "viagens_feitas": viagens_feitas,
+        "circulo_ativo": circulo_ativo,
+        "user": user
     })
 
 
@@ -90,6 +97,10 @@ def create_viagem(
         cidades: list[str] = Form(...),
         imagem: UploadFile = File(None)
 ):
+    circulo_ativo = request.session.get('circulo_ativo')
+    if not circulo_ativo:
+        return RedirectResponse(url="/")
+
     try:
         caminho_imagem = None
         TIPOS_VALIDOS = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
@@ -97,24 +108,24 @@ def create_viagem(
         if imagem and imagem.filename:
             if imagem.content_type not in TIPOS_VALIDOS:
                 return RedirectResponse(url="/viagens", status_code=303)
-            else:
-                extensao = imagem.filename.split(".")[-1]
-                nome_arquivo = f"{uuid.uuid4()}.{extensao}"
-                pasta_destino = Path("static/uploads")
-                pasta_destino.mkdir(parents=True, exist_ok=True)
-                caminho_final = pasta_destino / nome_arquivo
 
-                with open(caminho_final, "wb") as buffer:
-                    shutil.copyfileobj(imagem.file, buffer)
+            extensao = imagem.filename.split(".")[-1]
+            nome_arquivo = f"{uuid.uuid4()}.{extensao}"
+            pasta_destino = Path("static/uploads")
+            pasta_destino.mkdir(parents=True, exist_ok=True)
+            caminho_final = pasta_destino / nome_arquivo
 
-                caminho_imagem = f"uploads/{nome_arquivo}"
+            with open(caminho_final, "wb") as buffer:
+                shutil.copyfileobj(imagem.file, buffer)
+
+            caminho_imagem = f"uploads/{nome_arquivo}"
 
         conn = get_connection()
         cursor = conn.cursor()
 
         cursor.execute(
-            "INSERT INTO viagens (nome, imagem_capa) VALUES (%s, %s) RETURNING id",
-            (nome_viagem, caminho_imagem)
+            "INSERT INTO viagens (circulo_id, nome, imagem_capa) VALUES (%s, %s, %s) RETURNING id",
+            (circulo_ativo['id'], nome_viagem, caminho_imagem)
         )
         viagem_id = cursor.fetchone()[0]
 
@@ -138,19 +149,17 @@ def create_viagem(
 
     return RedirectResponse(url="/viagens", status_code=303)
 
-
 @router.post("/remove-viagem/{viagem_id}")
 def remove_viagem(request: Request, viagem_id: int):
     try:
         conn = get_connection()
         cursor = conn.cursor()
-
         cursor.execute("DELETE FROM viagens WHERE id = %s", (viagem_id,))
         conn.commit()
         cursor.close()
         conn.close()
     except Exception as e:
-        print(f"Erro ao salvar: {e}")
+        print(f"Erro ao remover viagem: {e}")
 
     return RedirectResponse(url="/viagens", status_code=303)
 
@@ -263,6 +272,11 @@ def remover_foto_viagem(foto_id: int):
 
 @router.get("/{viagem_id}/cidades/{cidade_id}")
 def read_cidade_detalhe(request: Request, viagem_id: int, cidade_id: int):
+    circulo_ativo = request.session.get('circulo_ativo')
+    user = request.session.get('user')
+    if not circulo_ativo:
+        return RedirectResponse(url="/")
+
     cidade_encontrada = None
     viagem_encontrada = None
     lista_fotos = []
@@ -271,30 +285,33 @@ def read_cidade_detalhe(request: Request, viagem_id: int, cidade_id: int):
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT id, nome, imagem_capa FROM viagens WHERE id = %s", (viagem_id,))
+        cursor.execute("SELECT id, nome, imagem_capa FROM viagens WHERE id = %s AND circulo_id = %s",
+                       (viagem_id, circulo_ativo['id']))
         dados_viagem = cursor.fetchone()
+
         if dados_viagem:
             viagem_encontrada = {"id": dados_viagem[0], "nome": dados_viagem[1], "caminho_imagem": dados_viagem[2]}
 
-        cursor.execute("SELECT * FROM cidades_x_viagem WHERE id = %s", (cidade_id,))
-        dados_cidade = cursor.fetchone()
+            cursor.execute("SELECT * FROM cidades_x_viagem WHERE id = %s AND viagem_id = %s", (cidade_id, viagem_id))
+            dados_cidade = cursor.fetchone()
 
-        if dados_cidade:
-            cursor.execute("SELECT * FROM fotos_cidade WHERE cidade_id = %s ORDER BY data_upload DESC", (cidade_id,))
-            dados_fotos = cursor.fetchall()
-            for foto in dados_fotos:
-                lista_fotos.append({
-                    "id": foto[0], "cidade_id": foto[1], "caminho_foto": foto[2], "data_upload": foto[3]
-                })
+            if dados_cidade:
+                cursor.execute("SELECT * FROM fotos_cidade WHERE cidade_id = %s ORDER BY data_upload DESC",
+                               (cidade_id,))
+                dados_fotos = cursor.fetchall()
+                for foto in dados_fotos:
+                    lista_fotos.append({
+                        "id": foto[0], "cidade_id": foto[1], "caminho_foto": foto[2], "data_upload": foto[3]
+                    })
 
-            cidade_encontrada = {
-                "id": dados_cidade[0],
-                "viagem_id": viagem_id,
-                "nome_cidade": dados_cidade[2],
-                "visitada": dados_cidade[3],
-                "nota": dados_cidade[4],
-                "comentario": dados_cidade[5],
-            }
+                cidade_encontrada = {
+                    "id": dados_cidade[0],
+                    "viagem_id": viagem_id,
+                    "nome_cidade": dados_cidade[2],
+                    "visitada": dados_cidade[3],
+                    "nota": dados_cidade[4],
+                    "comentario": dados_cidade[5],
+                }
 
         cursor.close()
         conn.close()
@@ -302,12 +319,14 @@ def read_cidade_detalhe(request: Request, viagem_id: int, cidade_id: int):
     except Exception as e:
         print(f"Erro ao ler cidade: {e}")
 
-    if not cidade_encontrada:
-        return templates.TemplateResponse("item_nao_encontrado.html", {"request": request, "item": "Cidade"}, status_code=404)
+    if not cidade_encontrada or not viagem_encontrada:
+        return templates.TemplateResponse("item_nao_encontrado.html", {"request": request, "item": "Cidade"},
+                                          status_code=404)
 
     return templates.TemplateResponse(
         "viagens/cidade_detalhes.html",
-        {"request": request, "cidade": cidade_encontrada, "viagem": viagem_encontrada, "fotos": lista_fotos}
+        {"request": request, "cidade": cidade_encontrada, "viagem": viagem_encontrada, "fotos": lista_fotos,
+         "circulo_ativo": circulo_ativo, "user": user}
     )
 
 
@@ -374,7 +393,7 @@ def update_comentario_cidade(viagem_id: int, cidade_id: int, comentario: str = F
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("UPDATE cidades_x_viagem SET comanterio = %s WHERE id = %s", (comentario, cidade_id))
+        cursor.execute("UPDATE cidades_x_viagem SET comentario = %s WHERE id = %s", (comentario, cidade_id))
         conn.commit()
         cursor.close()
         conn.close()
@@ -448,6 +467,11 @@ def remover_foto_cidade(foto_id: int):
 
 @router.get("/{viagem_id}")
 def read_viagem_detalhe(request: Request, viagem_id: int):
+    circulo_ativo = request.session.get('circulo_ativo')
+    user = request.session.get('user')
+    if not circulo_ativo:
+        return RedirectResponse(url="/")
+
     viagem_encontrada = None
     lista_fotos = []
     lista_cidades = []
@@ -456,13 +480,13 @@ def read_viagem_detalhe(request: Request, viagem_id: int):
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM viagens WHERE id = %s", (viagem_id,))
+        cursor.execute("SELECT * FROM viagens WHERE id = %s AND circulo_id = %s", (viagem_id, circulo_ativo['id']))
         dados_viagem = cursor.fetchone()
 
-        cursor.execute("SELECT * FROM cidades_x_viagem WHERE viagem_id = %s ORDER BY nome_cidade", (viagem_id,))
-        dados_cidades = cursor.fetchall()
-
         if dados_viagem:
+            cursor.execute("SELECT * FROM cidades_x_viagem WHERE viagem_id = %s ORDER BY nome_cidade", (viagem_id,))
+            dados_cidades = cursor.fetchall()
+
             cursor.execute("SELECT * FROM fotos_viagem where viagem_id = %s ORDER BY data_upload DESC", (viagem_id,))
             dados_fotos = cursor.fetchall()
 
@@ -486,23 +510,24 @@ def read_viagem_detalhe(request: Request, viagem_id: int):
 
             viagem_encontrada = {
                 "id": dados_viagem[0],
-                "nome": dados_viagem[1],
-                "nota": dados_viagem[2],
-                "feita": dados_viagem[3],
-                "caminho_imagem": dados_viagem[4],
-                "comentarios": dados_viagem[5],
+                "circulo_id": dados_viagem[1],
+                "nome": dados_viagem[2],
+                "nota": dados_viagem[3],
+                "feita": dados_viagem[4],
+                "caminho_imagem": dados_viagem[5],
+                "comentarios": dados_viagem[6],
             }
 
         cursor.close()
         conn.close()
 
     except Exception as e:
-        print(f"Erro ao salvar: {e}")
+        print(f"Erro ao buscar detalhes da viagem: {e}")
 
     if not viagem_encontrada:
         return templates.TemplateResponse("item_nao_encontrado.html", {"request": request, "item": "Viagem"}, status_code=404)
 
     return templates.TemplateResponse(
         "viagens/viagem_detalhes.html",
-        {"request": request, "viagem": viagem_encontrada, "fotos": lista_fotos, "dados_cidades": lista_cidades},
+        {"request": request, "viagem": viagem_encontrada, "fotos": lista_fotos, "dados_cidades": lista_cidades, "circulo_ativo": circulo_ativo, "user": user},
     )

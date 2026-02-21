@@ -15,6 +15,7 @@ router = APIRouter(
     tags=["series"]
 )
 
+
 def ler_temporadas_e_definir_nota_serie(conn, cursor, serie_id):
     cursor.execute(
         "SELECT * FROM temporadas WHERE serie_id = %s", (serie_id,)
@@ -42,8 +43,14 @@ def ler_temporadas_e_definir_nota_serie(conn, cursor, serie_id):
     )
     conn.commit()
 
+
 @router.get("/")
 def read_series(request: Request):
+    circulo_ativo = request.session.get('circulo_ativo')
+    user = request.session.get('user')
+    if not circulo_ativo:
+        return RedirectResponse(url="/")
+
     series_planejadas = []
     series_assistidas = []
 
@@ -51,7 +58,10 @@ def read_series(request: Request):
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM series ORDER BY id DESC")
+        cursor.execute(
+            "SELECT id, nome, nota_geral, assistido_completo FROM series WHERE circulo_id = %s ORDER BY id DESC",
+            (circulo_ativo['id'],)
+        )
         series_dados = cursor.fetchall()
 
         for item in series_dados:
@@ -93,12 +103,18 @@ def read_series(request: Request):
         "request": request,
         "series_planejadas": series_planejadas,
         "series_assistidas": series_assistidas,
+        "circulo_ativo": circulo_ativo,
+        "user": user
     })
 
 
 @router.post("/novo")
 def criar_serie(request: Request, nome_serie: str = Form(...), qtd_temporadas: int = Form(...),
                 imagem: UploadFile = File(None)):
+    circulo_ativo = request.session.get('circulo_ativo')
+    if not circulo_ativo:
+        return RedirectResponse(url="/")
+
     try:
         caminho_imagem = None
         TIPOS_VALIDOS = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
@@ -123,8 +139,8 @@ def criar_serie(request: Request, nome_serie: str = Form(...), qtd_temporadas: i
         cursor = conn.cursor()
 
         cursor.execute(
-            "INSERT INTO series (nome, assistido_completo, imagem_capa) VALUES (%s, false, %s) RETURNING id",
-            (nome_serie, caminho_imagem)
+            "INSERT INTO series (circulo_id, nome, assistido_completo, imagem_capa) VALUES (%s, %s, false, %s) RETURNING id",
+            (circulo_ativo['id'], nome_serie, caminho_imagem)
         )
         serie_id = cursor.fetchone()[0]
 
@@ -286,6 +302,7 @@ def remover_foto_serie(foto_id: int):
         print(f"Erro ao deletar foto série: {e}")
         return RedirectResponse(url="/series", status_code=303)
 
+
 @router.post("/{serie_id}/temporadas/{temporada_id}/marcar-assistido")
 def marcar_temporada(request: Request, serie_id: int, temporada_id: int, nota: int = Form(...)):
     try:
@@ -394,8 +411,8 @@ def adicionar_foto_temporada(serie_id: int, temporada_id: int, arquivo: UploadFi
     return RedirectResponse(url=f"/series/{serie_id}/temporada/{temporada_id}", status_code=303)
 
 
-@router.post("/temporadas/fotos/remover/{foto_id}")
-def remover_foto_temporada(foto_id: int):
+@router.post("/{serie_id}/temporadas/{temporada_id}/fotos/remover/{foto_id}")
+def remover_foto_temporada(serie_id: int, temporada_id: int, foto_id: int):
     try:
         conn = get_connection()
         cursor = conn.cursor()
@@ -425,8 +442,14 @@ def remover_foto_temporada(foto_id: int):
         print(f"Erro ao deletar foto temporada: {e}")
         return RedirectResponse(url="/series", status_code=303)
 
+
 @router.get("/{serie_id}/temporada/{temporada_id}")
 def read_temporada(request: Request, temporada_id: int, serie_id: int):
+    circulo_ativo = request.session.get('circulo_ativo')
+    user = request.session.get('user')
+    if not circulo_ativo:
+        return RedirectResponse(url="/")
+
     temporada_encontrada = None
     serie_encontrada = None
     lista_fotos = []
@@ -459,35 +482,44 @@ def read_temporada(request: Request, temporada_id: int, serie_id: int):
                 "comentario": dados_temporada[5],
             }
 
-            cursor.execute("SELECT * FROM series WHERE id = %s", (serie_id,))
+            cursor.execute("SELECT * FROM series WHERE id = %s AND circulo_id = %s", (serie_id, circulo_ativo['id']))
             dados_serie = cursor.fetchone()
 
-            serie_encontrada = {
-                "id": serie_id,
-                "nome": dados_serie[1],
-                "nota": dados_serie[2],
-                "assistido": dados_serie[3],
-                "caminho_imagem": dados_serie[4],
-                "comentarios": dados_serie[5],
-            }
+            if dados_serie:
+                serie_encontrada = {
+                    "id": serie_id,
+                    "circulo_id": dados_serie[1],
+                    "nome": dados_serie[2],
+                    "nota": dados_serie[3],
+                    "assistido": dados_serie[4],
+                    "caminho_imagem": dados_serie[5],
+                    "comentarios": dados_serie[6],
+                }
 
         cursor.close()
         conn.close()
     except Exception as e:
         print(f"Erro ao ler temporada: {e}")
 
-    if not temporada_encontrada:
-        return templates.TemplateResponse("item_nao_encontrado.html", {"request": request, "item": "Temporada"},
+    if not temporada_encontrada or not serie_encontrada:
+        return templates.TemplateResponse("item_nao_encontrado.html",
+                                          {"request": request, "item": "Temporada ou Série"},
                                           status_code=404)
 
     return templates.TemplateResponse(
         "series/temporada_detalhes.html",
-        {"request": request, "temporada": temporada_encontrada, "serie": serie_encontrada, "fotos": lista_fotos}
+        {"request": request, "temporada": temporada_encontrada, "serie": serie_encontrada, "fotos": lista_fotos,
+         "circulo_ativo": circulo_ativo, "user": user}
     )
 
 
 @router.get("/{serie_id}")
 def read_serie_detalhe(request: Request, serie_id: int):
+    circulo_ativo = request.session.get('circulo_ativo')
+    user = request.session.get('user')
+    if not circulo_ativo:
+        return RedirectResponse(url="/")
+
     serie_encontrada = None
     lista_fotos = []
     lista_temporadas = []
@@ -496,13 +528,13 @@ def read_serie_detalhe(request: Request, serie_id: int):
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM series WHERE id = %s", (serie_id,))
+        cursor.execute("SELECT * FROM series WHERE id = %s AND circulo_id = %s", (serie_id, circulo_ativo['id']))
         dados_serie = cursor.fetchone()
 
-        cursor.execute("SELECT * FROM temporadas WHERE serie_id = %s ORDER BY numero_temporada", (serie_id,))
-        dados_temporadas = cursor.fetchall()
-
         if dados_serie:
+            cursor.execute("SELECT * FROM temporadas WHERE serie_id = %s ORDER BY numero_temporada", (serie_id,))
+            dados_temporadas = cursor.fetchall()
+
             cursor.execute("SELECT * FROM fotos_serie where serie_id = %s ORDER BY data_upload DESC", (serie_id,))
             dados_fotos = cursor.fetchall()
 
@@ -526,11 +558,12 @@ def read_serie_detalhe(request: Request, serie_id: int):
 
             serie_encontrada = {
                 "id": dados_serie[0],
-                "nome": dados_serie[1],
-                "nota": dados_serie[2],
-                "assistido": dados_serie[3],
-                "caminho_imagem": dados_serie[4],
-                "comentarios": dados_serie[5],
+                "circulo_id": dados_serie[1],
+                "nome": dados_serie[2],
+                "nota": dados_serie[3],
+                "assistido": dados_serie[4],
+                "caminho_imagem": dados_serie[5],
+                "comentarios": dados_serie[6],
             }
 
         cursor.close()
@@ -545,5 +578,6 @@ def read_serie_detalhe(request: Request, serie_id: int):
 
     return templates.TemplateResponse(
         "series/serie_detalhes.html",
-        {"request": request, "serie": serie_encontrada, "fotos": lista_fotos, "dados_temporadas": lista_temporadas},
+        {"request": request, "serie": serie_encontrada, "fotos": lista_fotos, "dados_temporadas": lista_temporadas,
+         "circulo_ativo": circulo_ativo, "user": user},
     )
