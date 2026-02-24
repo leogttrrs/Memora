@@ -24,6 +24,9 @@ router = APIRouter(tags=["auth"])
 @router.get("/login")
 async def login(request: Request):
     redirect_uri = request.url_for('auth_callback')
+    if os.getenv("ENV") == "production":
+        redirect_uri = str(redirect_uri).replace("http://", "https://")
+
     return await oauth.google.authorize_redirect(request, str(redirect_uri), prompt='select_account')
 
 
