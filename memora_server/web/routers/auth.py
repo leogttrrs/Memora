@@ -1,10 +1,11 @@
+import os
 from fastapi import APIRouter, Request
 from fastapi.responses import RedirectResponse
 from authlib.integrations.starlette_client import OAuth
 from core.database import get_connection
 
-GOOGLE_CLIENT_ID = "907878239835-o7jc9gofnusv0mchojqu963gqvh9tuvf.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET = "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"
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 
 oauth = OAuth()
 oauth.register(
