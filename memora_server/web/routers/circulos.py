@@ -238,7 +238,7 @@ def disparar_email_convite(email_destino, nome_remetente, nome_circulo):
 
     try:
         params = {
-            "from": "Memora <onboarding@resend.dev>",
+            "from": "Memora <convite@saboryza.com.br>",
             "to": [email_destino],
             "subject": f"Convite para o Memora: {nome_circulo}",
             "html": corpo,
