@@ -43,7 +43,9 @@ def read_root(request: Request):
                 FROM circulos c
                 JOIN membros_circulo mc ON c.id = mc.circulo_id
                 WHERE mc.usuario_id = %s
-                ORDER BY c.data_criacao ASC
+                ORDER BY 
+                    CASE WHEN mc.papel = 'admin' THEN 1 ELSE 2 END ASC, 
+                    c.data_criacao ASC
             """, (user['id'],))
             for row in cursor.fetchall():
                 lista_circulos.append({"id": row[0], "nome": row[1], "papel": row[2], "emoji": row[3] or '🪐'})
