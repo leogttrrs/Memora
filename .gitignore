@@ -25,3 +25,7 @@ Thumbs.db
 /memora_server/clean_db.py
 
 /memora_server/teste.py
+
+*.py[cod]
+static/uploads/*
+!static/uploads/.gitkeep
