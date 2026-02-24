@@ -8,6 +8,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:8000")
+
 templates = Jinja2Templates(directory=BASE_DIR)
 
 router = APIRouter(
@@ -234,7 +236,7 @@ def disparar_email_convite(email_destino, nome_remetente, nome_circulo):
                 <p><b>{nome_remetente}</b> acabou de convidar você para participar do círculo <b>"{nome_circulo}"</b> no Memora.</p>
                 <p>Acesse o sistema para aceitar o convite e começar a compartilhar suas memórias.</p>
                 <br>
-                <a href="http://127.0.0.1:8000" style="background-color: #38bdf8; color: #0f172a; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Acessar o Memora</a>
+                <a href="{BASE_URL}" style="background-color: #38bdf8; color: #0f172a; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Acessar o Memora</a>
             </div>
         </body>
     </html>
@@ -242,12 +244,11 @@ def disparar_email_convite(email_destino, nome_remetente, nome_circulo):
     msg.attach(MIMEText(corpo, 'html'))
 
     try:
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
         server.login(EMAIL_REMETENTE, SENHA_APP)
         server.send_message(msg)
         server.quit()
-        print(f"E-mail de convite enviado com sucesso para {email_destino}!")
+        print(f"E-mail de convite enviado com sucesso!")
     except Exception as e:
         print(f"Erro ao enviar e-mail via SMTP: {e}")
 
