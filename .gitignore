@@ -29,3 +29,5 @@ Thumbs.db
 *.py[cod]
 static/uploads/*
 !static/uploads/.gitkeep
+
+credenciais_db_prod

@@ -69,7 +69,7 @@
                     <form action="/series/alterar-nota/{{ serie.id }}" method="post">
 
                         <div style="margin: 20px 0;">
-                            <input type="number" name="nota" min="1" max="10" class="input-nota" required placeholder="0-10" value="{{ serie.nota }}">
+                            <input type="number" name="nota" min="1" max="10" class="input-nota" required placeholder="1-10" value="{{ serie.nota }}">
                         </div>
 
                         <div class="modal-actions">
@@ -147,7 +147,7 @@
                 {% endfor %}
             </div>
         {% else %}
-            <p style="color: #64748b; font-style: italic; margin-top: 50px;">Nenhuma foto registrada... Tire uma selfie com a pipoca! 🍿</p>
+            <p style="color: #64748b; font-style: italic; margin-top: 50px;">Nenhuma foto registrada...</p>
         {% endif %}
 
         <div id="lightbox" class="lightbox-overlay" onclick="fecharLightbox()">
