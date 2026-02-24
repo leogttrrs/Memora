@@ -2,13 +2,15 @@ import psycopg2
 from dotenv import load_dotenv
 import os
 
-load_dotenv(".env.development")
+if os.getenv("ENV") != "production":
+    load_dotenv(".env.development")
 
-ENV = os.getenv("ENV", "development")
 
 def get_connection():
-    if ENV == "production":
-        return psycopg2.connect(os.getenv("DATABASE_URL"))
+    db_url = os.getenv("DATABASE_URL")
+
+    if db_url:
+        return psycopg2.connect(db_url)
     else:
         return psycopg2.connect(
             host=os.getenv("POSTGRES_HOST"),
