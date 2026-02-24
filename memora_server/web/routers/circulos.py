@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse
 import os
 from fastapi.templating import Jinja2Templates
 from core.database import get_connection
-import httpx
+import resend
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:8000")
@@ -219,9 +219,7 @@ def recusar_convite(request: Request, convite_id: int):
 
 
 def disparar_email_convite(email_destino, nome_remetente, nome_circulo):
-    resend_api_key = os.getenv("RESEND_API_KEY")
-    url = "https://api.resend.com/emails"
-    headers = {"Authorization": f"Bearer {resend_api_key}", "Content-Type": "application/json"}
+    resend.api_key = os.getenv("RESEND_API_KEY")
 
     corpo = f"""
     <html>
@@ -238,17 +236,17 @@ def disparar_email_convite(email_destino, nome_remetente, nome_circulo):
     </html>
     """
 
-    payload = {
-        "from": "Memora <onboarding@resend.dev>",
-        "to": [email_destino],
-        "subject": f"Convite para o Memora: {nome_circulo}",
-        "html": corpo
-    }
-
     try:
-        response = httpx.post(url, headers=headers, json=payload)
-        if response.status_code == 200:
-            print("E-mail enviado via API!")
+        params = {
+            "from": "Memora <onboarding@resend.dev>",
+            "to": [email_destino],
+            "subject": f"Convite para o Memora: {nome_circulo}",
+            "html": corpo,
+        }
+
+        email = resend.Emails.send(params)
+        print(f"E-mail enviado com ID: {email['id']}")
+
     except Exception as e:
         print(f"Erro ao enviar e-mail via Resend API: {e}")
 
