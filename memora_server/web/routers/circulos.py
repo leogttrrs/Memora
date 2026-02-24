@@ -15,8 +15,8 @@ router = APIRouter(
     tags=["circulos"]
 )
 
-EMAIL_REMETENTE = "leogttrrs@gmail.com"
-SENHA_APP = "aijn jgwd bwfi ngyb"
+EMAIL_REMETENTE = os.getenv("EMAIL_REMETENTE")
+SENHA_APP = os.getenv("SENHA_APP")
 
 @router.get("/{circulo_id}/entrar")
 def entrar_circulo(request: Request, circulo_id: int):
