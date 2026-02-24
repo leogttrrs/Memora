@@ -3,9 +3,7 @@ from fastapi.responses import RedirectResponse
 import os
 from fastapi.templating import Jinja2Templates
 from core.database import get_connection
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import httpx
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:8000")
@@ -17,7 +15,6 @@ router = APIRouter(
     tags=["circulos"]
 )
 
-EMAIL_REMETENTE = os.getenv("EMAIL_REMETENTE")
 SENHA_APP = os.getenv("SENHA_APP")
 
 @router.get("/{circulo_id}/entrar")
@@ -222,10 +219,9 @@ def recusar_convite(request: Request, convite_id: int):
 
 
 def disparar_email_convite(email_destino, nome_remetente, nome_circulo):
-    msg = MIMEMultipart()
-    msg['From'] = EMAIL_REMETENTE
-    msg['To'] = email_destino
-    msg['Subject'] = f"Convite para o Memora: {nome_circulo}"
+    resend_api_key = os.getenv("RESEND_API_KEY")
+    url = "https://api.resend.com/emails"
+    headers = {"Authorization": f"Bearer {resend_api_key}", "Content-Type": "application/json"}
 
     corpo = f"""
     <html>
@@ -241,17 +237,20 @@ def disparar_email_convite(email_destino, nome_remetente, nome_circulo):
         </body>
     </html>
     """
-    msg.attach(MIMEText(corpo, 'html'))
+
+    payload = {
+        "from": "Memora <onboarding@resend.dev>",
+        "to": [email_destino],
+        "subject": f"Convite para o Memora: {nome_circulo}",
+        "html": corpo
+    }
 
     try:
-        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=10)
-        server.starttls()
-        server.login(EMAIL_REMETENTE, SENHA_APP)
-        server.send_message(msg)
-        server.quit()
-        print(f"E-mail de convite enviado com sucesso!")
+        response = httpx.post(url, headers=headers, json=payload)
+        if response.status_code == 200:
+            print("E-mail enviado via API!")
     except Exception as e:
-        print(f"Erro ao enviar e-mail via SMTP: {e}")
+        print(f"Erro ao enviar e-mail via Resend API: {e}")
 
 
 @router.post("/{circulo_id}/excluir")
