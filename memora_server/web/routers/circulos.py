@@ -244,7 +244,8 @@ def disparar_email_convite(email_destino, nome_remetente, nome_circulo):
     msg.attach(MIMEText(corpo, 'html'))
 
     try:
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=10)
+        server.starttls()
         server.login(EMAIL_REMETENTE, SENHA_APP)
         server.send_message(msg)
         server.quit()
