@@ -107,7 +107,6 @@ def read_viagens(request: Request):
 @router.post("/novo")
 def create_viagem(request: Request, nome_viagem: str = Form(...), cidades: list[str] = Form(...), imagem: UploadFile = File(None)):
     circulo_ativo = request.session.get('circulo_ativo')
-    URL_PADRAO_CIDADE = "https://res.cloudinary.com/dcj3ttx9j/image/upload/v1771983520/default_cover_k7dlns.jpg"
     if not circulo_ativo:
         return RedirectResponse(url="/")
 
@@ -128,10 +127,12 @@ def create_viagem(request: Request, nome_viagem: str = Form(...), cidades: list[
         for nome_cidade in cidades:
             nome_limpo = nome_cidade.strip()
             if nome_limpo:
+
                 cursor.execute(
-                    "INSERT INTO cidades_x_viagem (viagem_id, nome_cidade, caminho_foto, nota) VALUES (%s, %s, %s, 0)",
-                    (viagem_id, nome_limpo, URL_PADRAO_CIDADE)
+                    "INSERT INTO cidades_x_viagem (viagem_id, nome_cidade, nota) VALUES (%s, %s, 0)",
+                    (viagem_id, nome_limpo)
                 )
+
 
         conn.commit()
         conn.close()

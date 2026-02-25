@@ -159,7 +159,6 @@ def criar_tabelas():
                 visitada BOOLEAN DEFAULT FALSE,
                 nota INT CHECK (nota >= 0 AND nota <= 10),
                 comentario TEXT,
-                caminho_foto VARCHAR(255) NOT NULL,
                 data_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (viagem_id) REFERENCES viagens(id) ON DELETE CASCADE
             );
