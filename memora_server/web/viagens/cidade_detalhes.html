@@ -25,7 +25,11 @@
 
         <div class="movie-cover-container">
             {% if viagem.caminho_imagem %}
-                <img src="/static/{{ viagem.caminho_imagem }}" class="movie-cover generic">
+                {% if viagem.caminho_imagem.startswith('http') %}
+                    <img src="{{ viagem.caminho_imagem }}" class="movie-cover">
+                {% else %}
+                    <img src="/static/{{ viagem.caminho_imagem }}" class="movie-cover">
+                {% endif %}
             {% else %}
                 <img src="/static/default_cover.png" alt="Sem capa" class="movie-cover generic">
             {% endif %}
@@ -111,15 +115,18 @@
             <div class="gallery-grid">
                 {% for foto in fotos %}
                     <div class="photo-card">
-                        <img src="/static/{{ foto.caminho_foto }}" class="gallery-img" onclick="abrirLightbox('/static/{{ foto.caminho_foto }}')">
-                        <<form action="/viagens/cidades/fotos/remover/{{ foto.id }}" method="post" onsubmit="return confirm('Apagar esta foto?')">
+                        {% set url_foto = foto.caminho_foto if foto.caminho_foto.startswith('http') else '/static/' + foto.caminho_foto %}
+
+                        <img src="{{ url_foto }}" class="gallery-img" onclick="abrirLightbox('{{ url_foto }}')">
+
+                        <form action="/viagens/cidades/fotos/remover/{{ foto.id }}" method="post" onsubmit="return confirm('Apagar esta foto?')">
                             <button type="submit" class="btn-delete-photo">×</button>
                         </form>
                     </div>
                 {% endfor %}
             </div>
         {% else %}
-            <p style="color: #64748b; font-style: italic; margin-top: 50px;">Nenhuma memória registrada em {{ cidade.nome_cidade }}... Tire uma foto de um ponto turístico! 📸</p>
+            <p style="color: #64748b; font-style: italic; margin-top: 50px;">Nenhuma memória registrada em {{ cidade.nome_cidade }}...</p>
         {% endif %}
 
         <div id="lightbox" class="lightbox-overlay" onclick="fecharLightbox()">

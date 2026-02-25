@@ -1,9 +1,6 @@
 from fastapi import APIRouter, Request, Form, UploadFile, File
 from fastapi.responses import RedirectResponse
 import os
-import shutil
-import uuid
-from pathlib import Path
 from fastapi.templating import Jinja2Templates
 from core.database import get_connection
 import cloudinary

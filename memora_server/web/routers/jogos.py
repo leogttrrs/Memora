@@ -19,7 +19,6 @@ router = APIRouter(
     tags=["jogos"]
 )
 
-
 def deletar_da_nuvem(url_completa: str):
     if not url_completa or "cloudinary" not in url_completa:
         return

@@ -1,11 +1,15 @@
 from fastapi import APIRouter, Request, Form, UploadFile, File
 from fastapi.responses import RedirectResponse
 import os
-import shutil
-import uuid
-from pathlib import Path
 from fastapi.templating import Jinja2Templates
 from core.database import get_connection
+import cloudinary
+import cloudinary.uploader
+
+cloudinary.config(
+    cloudinary_url=os.getenv("CLOUDINARY_URL"),
+    secure=True
+)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 templates = Jinja2Templates(directory=BASE_DIR)
@@ -14,6 +18,17 @@ router = APIRouter(
     prefix="/viagens",
     tags=["viagens"]
 )
+
+def deletar_da_nuvem(url_completa: str):
+    if not url_completa or "cloudinary" not in url_completa:
+        return
+    try:
+        public_id = url_completa.split('upload/')[-1].split('.', 1)[0]
+        if '/' in public_id and public_id.startswith('v'):
+            public_id = public_id.split('/', 1)[1]
+        cloudinary.uploader.destroy(public_id)
+    except Exception as e:
+        print(f"Erro ao deletar arquivo no Cloudinary: {e}")
 
 def ler_cidades_e_definir_nota_viagem(conn, cursor, viagem_id):
     cursor.execute("SELECT visitada, nota FROM cidades_x_viagem WHERE viagem_id = %s", (viagem_id,))
@@ -89,43 +104,24 @@ def read_viagens(request: Request):
         "user": user
     })
 
-
 @router.post("/novo")
-def create_viagem(
-        request: Request,
-        nome_viagem: str = Form(...),
-        cidades: list[str] = Form(...),
-        imagem: UploadFile = File(None)
-):
+def create_viagem(request: Request, nome_viagem: str = Form(...), cidades: list[str] = Form(...), imagem: UploadFile = File(None)):
     circulo_ativo = request.session.get('circulo_ativo')
+    URL_PADRAO_CIDADE = "https://res.cloudinary.com/dcj3ttx9j/image/upload/v1771983520/default_cover_k7dlns.jpg"
     if not circulo_ativo:
         return RedirectResponse(url="/")
 
     try:
-        caminho_imagem = None
-        TIPOS_VALIDOS = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
-
+        url_imagem = None
         if imagem and imagem.filename:
-            if imagem.content_type not in TIPOS_VALIDOS:
-                return RedirectResponse(url="/viagens", status_code=303)
-
-            extensao = imagem.filename.split(".")[-1]
-            nome_arquivo = f"{uuid.uuid4()}.{extensao}"
-            pasta_destino = Path("static/uploads")
-            pasta_destino.mkdir(parents=True, exist_ok=True)
-            caminho_final = pasta_destino / nome_arquivo
-
-            with open(caminho_final, "wb") as buffer:
-                shutil.copyfileobj(imagem.file, buffer)
-
-            caminho_imagem = f"uploads/{nome_arquivo}"
+            upload_result = cloudinary.uploader.upload(imagem.file, folder="memora/capas_viagens")
+            url_imagem = upload_result.get("secure_url")
 
         conn = get_connection()
         cursor = conn.cursor()
-
         cursor.execute(
             "INSERT INTO viagens (circulo_id, nome, imagem_capa) VALUES (%s, %s, %s) RETURNING id",
-            (circulo_ativo['id'], nome_viagem, caminho_imagem)
+            (circulo_ativo['id'], nome_viagem, url_imagem)
         )
         viagem_id = cursor.fetchone()[0]
 
@@ -133,17 +129,12 @@ def create_viagem(
             nome_limpo = nome_cidade.strip()
             if nome_limpo:
                 cursor.execute(
-                    """
-                    INSERT INTO cidades_x_viagem (viagem_id, nome_cidade, caminho_foto, nota) 
-                    VALUES (%s, %s, 'default_city.png', 0)
-                    """,
-                    (viagem_id, nome_limpo)
+                    "INSERT INTO cidades_x_viagem (viagem_id, nome_cidade, caminho_foto, nota) VALUES (%s, %s, %s, 0)",
+                    (viagem_id, nome_limpo, URL_PADRAO_CIDADE)
                 )
 
         conn.commit()
-        cursor.close()
         conn.close()
-
     except Exception as e:
         print(f"Erro ao criar viagem: {e}")
 
@@ -154,50 +145,55 @@ def remove_viagem(request: Request, viagem_id: int):
     try:
         conn = get_connection()
         cursor = conn.cursor()
+
+        cursor.execute("SELECT imagem_capa FROM viagens WHERE id = %s", (viagem_id,))
+        capa = cursor.fetchone()
+        if capa and capa[0]:
+            deletar_da_nuvem(capa[0])
+
+        cursor.execute("SELECT caminho_foto FROM fotos_viagem WHERE viagem_id = %s", (viagem_id,))
+        for f in cursor.fetchall():
+            deletar_da_nuvem(f[0])
+
         cursor.execute("DELETE FROM viagens WHERE id = %s", (viagem_id,))
         conn.commit()
-        cursor.close()
         conn.close()
     except Exception as e:
         print(f"Erro ao remover viagem: {e}")
-
     return RedirectResponse(url="/viagens", status_code=303)
 
 
 @router.post("/{viagem_id}/update-capa")
 def update_viagem_capa(viagem_id: int, imagem: UploadFile = File(...)):
     try:
-        caminho_imagem = None
-        TIPOS_VALIDOS = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
         if imagem and imagem.filename:
-            if imagem.content_type not in TIPOS_VALIDOS:
-                return RedirectResponse(url="/viagens?erro=tipo_invalido", status_code=303)
-
-            extensao = imagem.filename.split(".")[-1]
-            nome_arquivo = f"{uuid.uuid4()}.{extensao}"
-            pasta_destino = Path("static/uploads")
-            pasta_destino.mkdir(parents=True, exist_ok=True)
-            caminho_final = pasta_destino / nome_arquivo
-
-            with open(caminho_final, "wb") as buffer:
-                shutil.copyfileobj(imagem.file, buffer)
-
-            caminho_imagem = f"uploads/{nome_arquivo}"
-
-        if caminho_imagem:
             conn = get_connection()
             cursor = conn.cursor()
 
-            cursor.execute("UPDATE viagens SET imagem_capa = %s WHERE id = %s", (caminho_imagem, viagem_id))
+            cursor.execute("SELECT imagem_capa FROM viagens WHERE id = %s", (viagem_id,))
+            antiga = cursor.fetchone()
+            if antiga and antiga[0]:
+                deletar_da_nuvem(antiga[0])
+
+            upload_result = cloudinary.uploader.upload(
+                imagem.file,
+                folder="memora/capas_viagens"
+            )
+            nova_url = upload_result.get("secure_url")
+
+            cursor.execute(
+                "UPDATE viagens SET imagem_capa = %s WHERE id = %s",
+                (nova_url, viagem_id)
+            )
+
             conn.commit()
             cursor.close()
             conn.close()
 
     except Exception as e:
-        print(f"Erro ao atualizar capa: {e}")
+        print(f"Erro ao atualizar capa da viagem no Cloudinary: {e}")
 
     return RedirectResponse(url=f"/viagens/{viagem_id}", status_code=303)
-
 
 @router.post("/update-comentario/{viagem_id}")
 def update_comentario_viagem(viagem_id: int, comentario: str = Form(default="")):
@@ -214,61 +210,39 @@ def update_comentario_viagem(viagem_id: int, comentario: str = Form(default=""))
 
     return RedirectResponse(url=f"/viagens/{viagem_id}", status_code=303)
 
-
 @router.post("/{viagem_id}/adicionar-foto")
 def adicionar_foto_viagem(viagem_id: int, arquivo: UploadFile = File(...)):
-    if arquivo.content_type not in ["image/jpeg", "image/png", "image/webp", "image/jpg"]:
-        return RedirectResponse(url=f"/viagens/{viagem_id}?erro=arquivo_invalido", status_code=303)
-
     try:
-        extensao = arquivo.filename.split(".")[-1]
-        nome_novo = f"{uuid.uuid4()}.{extensao}"
-        caminho_relativo = f"uploads/{nome_novo}"
-
-        caminho_absoluto = Path("static") / caminho_relativo
-        with open(caminho_absoluto, "wb") as buffer:
-            shutil.copyfileobj(arquivo.file, buffer)
+        result = cloudinary.uploader.upload(arquivo.file, folder="memora/galeria_viagens")
+        url_foto = result.get("secure_url")
 
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO fotos_viagem (viagem_id, caminho_foto) VALUES (%s, %s)", (viagem_id, caminho_relativo))
+        cursor.execute("INSERT INTO fotos_viagem (viagem_id, caminho_foto) VALUES (%s, %s)", (viagem_id, url_foto))
         conn.commit()
         conn.close()
-
     except Exception as e:
         print(f"Erro ao salvar foto: {e}")
-
     return RedirectResponse(url=f"/viagens/{viagem_id}", status_code=303)
-
 
 @router.post("/fotos/remover/{foto_id}")
 def remover_foto_viagem(foto_id: int):
     try:
         conn = get_connection()
         cursor = conn.cursor()
-
         cursor.execute("SELECT caminho_foto, viagem_id FROM fotos_viagem WHERE id = %s", (foto_id,))
         row = cursor.fetchone()
-
         if row:
-            caminho_relativo = row[0]
-            viagem_id = row[1]
-            caminho_arquivo = Path("static") / caminho_relativo
-
-            if os.path.exists(caminho_arquivo):
-                os.remove(caminho_arquivo)
-
+            url_foto, viagem_id = row[0], row[1]
+            deletar_da_nuvem(url_foto)
             cursor.execute("DELETE FROM fotos_viagem WHERE id = %s", (foto_id,))
-            cursor.execute("DELETE FROM fotos_cidade WHERE caminho_foto = %s", (caminho_relativo,))
-
+            cursor.execute("DELETE FROM fotos_cidade WHERE caminho_foto = %s", (url_foto,))
             conn.commit()
-            conn.close()
-            return RedirectResponse(url=f"/viagens/{viagem_id}", status_code=303)
-
+        conn.close()
+        return RedirectResponse(url=f"/viagens/{viagem_id}", status_code=303)
     except Exception as e:
-        print(f"Erro ao deletar foto: {e}")
+        print(f"Erro ao deletar: {e}")
         return RedirectResponse(url="/viagens", status_code=303)
-
 
 @router.get("/{viagem_id}/cidades/{cidade_id}")
 def read_cidade_detalhe(request: Request, viagem_id: int, cidade_id: int):
@@ -402,33 +376,20 @@ def update_comentario_cidade(viagem_id: int, cidade_id: int, comentario: str = F
 
     return RedirectResponse(url=f"/viagens/{viagem_id}/cidades/{cidade_id}", status_code=303)
 
-
 @router.post("/{viagem_id}/cidades/{cidade_id}/adicionar-foto")
 def adicionar_foto_cidade(viagem_id: int, cidade_id: int, arquivo: UploadFile = File(...)):
-    if arquivo.content_type not in ["image/jpeg", "image/png", "image/webp", "image/jpg"]:
-        return RedirectResponse(url=f"/viagens/{viagem_id}/cidades/{cidade_id}?erro=arquivo_invalido", status_code=303)
-
     try:
-        extensao = arquivo.filename.split(".")[-1]
-        nome_novo = f"{uuid.uuid4()}.{extensao}"
-        caminho_relativo = f"uploads/{nome_novo}"
-
-        caminho_absoluto = Path("static") / caminho_relativo
-        with open(caminho_absoluto, "wb") as buffer:
-            shutil.copyfileobj(arquivo.file, buffer)
+        result = cloudinary.uploader.upload(arquivo.file, folder="memora/galeria_cidades")
+        url_foto = result.get("secure_url")
 
         conn = get_connection()
         cursor = conn.cursor()
-
-        cursor.execute("INSERT INTO fotos_cidade (cidade_id, caminho_foto) VALUES (%s, %s)", (cidade_id, caminho_relativo))
-        cursor.execute("INSERT INTO fotos_viagem (viagem_id, caminho_foto) VALUES (%s, %s)", (viagem_id, caminho_relativo))
-
+        cursor.execute("INSERT INTO fotos_cidade (cidade_id, caminho_foto) VALUES (%s, %s)", (cidade_id, url_foto))
+        cursor.execute("INSERT INTO fotos_viagem (viagem_id, caminho_foto) VALUES (%s, %s)", (viagem_id, url_foto))
         conn.commit()
         conn.close()
-
     except Exception as e:
-        print(f"Erro ao salvar foto: {e}")
-
+        print(f"Erro ao salvar foto cidade: {e}")
     return RedirectResponse(url=f"/viagens/{viagem_id}/cidades/{cidade_id}", status_code=303)
 
 
@@ -437,33 +398,22 @@ def remover_foto_cidade(foto_id: int):
     try:
         conn = get_connection()
         cursor = conn.cursor()
-
         cursor.execute("SELECT caminho_foto, cidade_id FROM fotos_cidade WHERE id = %s", (foto_id,))
         row = cursor.fetchone()
-
         if row:
-            caminho_relativo = row[0]
-            cidade_id = row[1]
-            caminho_arquivo = Path("static") / caminho_relativo
-
-            if os.path.exists(caminho_arquivo):
-                os.remove(caminho_arquivo)
-
+            url_foto, cidade_id = row[0], row[1]
+            deletar_da_nuvem(url_foto)
             cursor.execute("DELETE FROM fotos_cidade WHERE id = %s", (foto_id,))
-            cursor.execute("DELETE FROM fotos_viagem WHERE caminho_foto = %s", (caminho_relativo,))
-
+            cursor.execute("DELETE FROM fotos_viagem WHERE caminho_foto = %s", (url_foto,))
             conn.commit()
 
             cursor.execute("SELECT viagem_id FROM cidades_x_viagem WHERE id = %s", (cidade_id,))
             viagem_id = cursor.fetchone()[0]
-
             conn.close()
             return RedirectResponse(url=f"/viagens/{viagem_id}/cidades/{cidade_id}", status_code=303)
-
     except Exception as e:
-        print(f"Erro ao deletar foto: {e}")
+        print(f"Erro ao deletar: {e}")
         return RedirectResponse(url="/viagens", status_code=303)
-
 
 @router.get("/{viagem_id}")
 def read_viagem_detalhe(request: Request, viagem_id: int):
