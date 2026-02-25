@@ -217,12 +217,10 @@ def update_serie_capa(serie_id: int, imagem: UploadFile = File(...)):
             conn = get_connection()
             cursor = conn.cursor()
 
-            # Deleta antiga
             cursor.execute("SELECT imagem_capa FROM series WHERE id = %s", (serie_id,))
             antiga = cursor.fetchone()
             if antiga and antiga[0]: deletar_da_nuvem(antiga[0])
 
-            # Sobe nova
             result = cloudinary.uploader.upload(imagem.file, folder="memora/capas_series")
             nova_url = result.get("secure_url")
 
@@ -258,7 +256,7 @@ def remover_foto_serie(foto_id: int):
 
         if row:
             url_foto, serie_id = row[0], row[1]
-            deletar_da_nuvem(url_foto)  # Remove do Cloudinary
+            deletar_da_nuvem(url_foto)
 
             cursor.execute("DELETE FROM fotos_serie WHERE id = %s", (foto_id,))
             cursor.execute("DELETE FROM fotos_temporada WHERE caminho_foto = %s", (url_foto,))
