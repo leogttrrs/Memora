@@ -6,6 +6,13 @@ import uuid
 from pathlib import Path
 from fastapi.templating import Jinja2Templates
 from core.database import get_connection
+import cloudinary
+import cloudinary.uploader
+
+cloudinary.config(
+    cloudinary_url=os.getenv("CLOUDINARY_URL"),
+    secure=True
+)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 templates = Jinja2Templates(directory=BASE_DIR)
@@ -15,6 +22,16 @@ router = APIRouter(
     tags=["receitas"]
 )
 
+def deletar_da_nuvem(url_completa: str):
+    if not url_completa or "cloudinary" not in url_completa:
+        return
+    try:
+        public_id = url_completa.split('upload/')[-1].split('.', 1)[0]
+        if '/' in public_id and public_id.startswith('v'):
+            public_id = public_id.split('/', 1)[1]
+        cloudinary.uploader.destroy(public_id)
+    except Exception as e:
+        print(f"Erro ao deletar arquivo no Cloudinary: {e}")
 
 @router.get("/")
 def read_receitas(request: Request):
@@ -62,90 +79,68 @@ def read_receitas(request: Request):
         "user": user
     })
 
-
 @router.post("/novo")
-def create_receita(
-        request: Request,
-        nome_receita: str = Form(...),
-        ingredientes: str = Form(None),
-        modo_preparo: str = Form(None),
-        imagem: UploadFile = File(None)
-):
+def create_receita(request: Request, nome_receita: str = Form(...), ingredientes: str = Form(None),
+                   modo_preparo: str = Form(None), imagem: UploadFile = File(None)):
     circulo_ativo = request.session.get('circulo_ativo')
-    if not circulo_ativo:
-        return RedirectResponse(url="/")
+    if not circulo_ativo: return RedirectResponse(url="/")
 
     try:
-        caminho_imagem = None
-        TIPOS_VALIDOS = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
-
+        url_imagem = None
         if imagem and imagem.filename:
-            if imagem.content_type not in TIPOS_VALIDOS:
-                return RedirectResponse(url="/receitas?erro=tipo_invalido", status_code=303)
-
-            extensao = imagem.filename.split(".")[-1]
-            nome_arquivo = f"{uuid.uuid4()}.{extensao}"
-
-            pasta_destino = Path("static/uploads")
-            pasta_destino.mkdir(parents=True, exist_ok=True)
-            caminho_final = pasta_destino / nome_arquivo
-
-            with open(caminho_final, "wb") as buffer:
-                shutil.copyfileobj(imagem.file, buffer)
-            caminho_imagem = f"uploads/{nome_arquivo}"
+            upload_result = cloudinary.uploader.upload(imagem.file, folder="memora/capas_receitas")
+            url_imagem = upload_result.get("secure_url")
 
         conn = get_connection()
         cursor = conn.cursor()
-
         cursor.execute(
-            """
-            INSERT INTO receitas (circulo_id, nome, ingredientes, modo_preparo, imagem_capa) 
-            VALUES (%s, %s, %s, %s, %s)
-            """,
-            (circulo_ativo['id'], nome_receita, ingredientes, modo_preparo, caminho_imagem)
+            "INSERT INTO receitas (circulo_id, nome, ingredientes, modo_preparo, imagem_capa) VALUES (%s, %s, %s, %s, %s)",
+            (circulo_ativo['id'], nome_receita, ingredientes, modo_preparo, url_imagem)
         )
-
         conn.commit()
-        cursor.close()
         conn.close()
-
     except Exception as e:
         print(f"Erro ao salvar: {e}")
 
     return RedirectResponse(url="/receitas", status_code=303)
 
-
 @router.post("/{receita_id}/update-capa")
 def update_receita_capa(receita_id: int, imagem: UploadFile = File(...)):
     try:
-        caminho_imagem = None
-        TIPOS_VALIDOS = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
         if imagem and imagem.filename:
-            if imagem.content_type not in TIPOS_VALIDOS:
-                return RedirectResponse(url="/receitas?erro=tipo_invalido", status_code=303)
-
-            extensao = imagem.filename.split(".")[-1]
-            nome_arquivo = f"{uuid.uuid4()}.{extensao}"
-            pasta_destino = Path("static/uploads")
-            pasta_destino.mkdir(parents=True, exist_ok=True)
-            caminho_final = pasta_destino / nome_arquivo
-
-            with open(caminho_final, "wb") as buffer:
-                shutil.copyfileobj(imagem.file, buffer)
-            caminho_imagem = f"uploads/{nome_arquivo}"
-
-        if caminho_imagem:
             conn = get_connection()
             cursor = conn.cursor()
-            cursor.execute("UPDATE receitas SET imagem_capa = %s WHERE id = %s", (caminho_imagem, receita_id))
+
+            # Deleta capa antiga
+            cursor.execute("SELECT imagem_capa FROM receitas WHERE id = %s", (receita_id,))
+            antiga = cursor.fetchone()
+            if antiga and antiga[0]: deletar_da_nuvem(antiga[0])
+
+            # Sobe nova
+            upload_result = cloudinary.uploader.upload(imagem.file, folder="memora/capas_receitas")
+            nova_url = upload_result.get("secure_url")
+
+            cursor.execute("UPDATE receitas SET imagem_capa = %s WHERE id = %s", (nova_url, receita_id))
             conn.commit()
-            cursor.close()
             conn.close()
     except Exception as e:
         print(f"Erro ao atualizar capa: {e}")
-
     return RedirectResponse(url=f"/receitas/{receita_id}", status_code=303)
 
+@router.post("/{receita_id}/adicionar-foto")
+def adicionar_foto_receita(receita_id: int, arquivo: UploadFile = File(...)):
+    try:
+        upload_result = cloudinary.uploader.upload(arquivo.file, folder="memora/galeria_receitas")
+        url_foto = upload_result.get("secure_url")
+
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO fotos_receita (receita_id, caminho_foto) VALUES (%s, %s)", (receita_id, url_foto))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao salvar foto: {e}")
+    return RedirectResponse(url=f"/receitas/{receita_id}", status_code=303)
 
 @router.post("/update-comentario/{receita_id}")
 def update_comentario_receitas(receita_id: int, comentario: str = Form(default="")):
@@ -202,20 +197,25 @@ def desmarcar_provada(receita_id: int):
         print(f"Erro ao atualizar provada: {e}")
     return RedirectResponse(url=f"/receitas/{receita_id}", status_code=303)
 
-
 @router.post("/remove-receita/{receita_id}")
 def remove_receita(request: Request, receita_id: int):
     try:
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM receitas WHERE ID = %s", (receita_id,))
+
+        cursor.execute("SELECT imagem_capa FROM receitas WHERE id = %s", (receita_id,))
+        capa = cursor.fetchone()
+        if capa and capa[0]: deletar_da_nuvem(capa[0])
+
+        cursor.execute("SELECT caminho_foto FROM fotos_receita WHERE receita_id = %s", (receita_id,))
+        for f in cursor.fetchall(): deletar_da_nuvem(f[0])
+
+        cursor.execute("DELETE FROM receitas WHERE id = %s", (receita_id,))
         conn.commit()
-        cursor.close()
         conn.close()
     except Exception as e:
-        print(f"Erro ao salvar: {e}")
+        print(f"Erro ao remover: {e}")
     return RedirectResponse(url="/receitas", status_code=303)
-
 
 @router.post("/marcar-provada/{receita_id}")
 def mark_as_watched_receita(request: Request, receita_id: int, nota: int = Form(...)):
@@ -244,29 +244,6 @@ def alterar_nota_receita(request: Request, receita_id: int, nota: int = Form(...
         print(f"Erro ao salvar: {e}")
     return RedirectResponse(url=f"/receitas/{receita_id}", status_code=303)
 
-
-@router.post("/{receita_id}/adicionar-foto")
-def adicionar_foto_receita(receita_id: int, arquivo: UploadFile = File(...)):
-    if arquivo.content_type not in ["image/jpeg", "image/png", "image/webp", "image/jpg"]:
-        return RedirectResponse(url=f"/receitas/{receita_id}?erro=arquivo_invalido", status_code=303)
-    try:
-        extensao = arquivo.filename.split(".")[-1]
-        nome_novo = f"{uuid.uuid4()}.{extensao}"
-        caminho_relativo = f"uploads/{nome_novo}"
-        caminho_absoluto = Path("static") / caminho_relativo
-        with open(caminho_absoluto, "wb") as buffer:
-            shutil.copyfileobj(arquivo.file, buffer)
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO fotos_receita (receita_id, caminho_foto) VALUES (%s, %s)",
-                       (receita_id, caminho_relativo))
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        print(f"Erro ao salvar foto: {e}")
-    return RedirectResponse(url=f"/receitas/{receita_id}", status_code=303)
-
-
 @router.post("/fotos/remover/{foto_id}")
 def remover_foto_receita(foto_id: int):
     try:
@@ -275,19 +252,15 @@ def remover_foto_receita(foto_id: int):
         cursor.execute("SELECT caminho_foto, receita_id FROM fotos_receita WHERE id = %s", (foto_id,))
         row = cursor.fetchone()
         if row:
-            caminho_relativo = row[0]
-            receita_id = row[1]
-            caminho_arquivo = Path("static") / caminho_relativo
-            if os.path.exists(caminho_arquivo):
-                os.remove(caminho_arquivo)
+            url_foto, receita_id = row[0], row[1]
+            deletar_da_nuvem(url_foto) # Remove da nuvem
             cursor.execute("DELETE FROM fotos_receita WHERE id = %s", (foto_id,))
             conn.commit()
-            conn.close()
-            return RedirectResponse(url=f"/receitas/{receita_id}", status_code=303)
+        conn.close()
+        return RedirectResponse(url=f"/receitas/{receita_id}", status_code=303)
     except Exception as e:
-        print(f"Erro ao deletar foto: {e}")
+        print(f"Erro ao deletar: {e}")
         return RedirectResponse(url="/receitas", status_code=303)
-
 
 @router.get("/{receita_id}")
 def read_receita_detalhe(request: Request, receita_id: int):

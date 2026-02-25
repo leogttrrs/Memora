@@ -179,9 +179,11 @@
             <div class="gallery-grid">
                 {% for foto in fotos %}
                     <div class="photo-card">
-                        <img src="/static/{{ foto.caminho_foto}}"
+                        {% set url_exibicao = foto.caminho_foto if foto.caminho_foto.startswith('http') else '/static/' + foto.caminho_foto %}
+
+                        <img src="{{ url_exibicao }}"
                              class="gallery-img"
-                             onclick="abrirLightbox('/static/{{ foto.caminho_foto }}')">
+                             onclick="abrirLightbox('{{ url_exibicao }}')">
 
                         <form action="/receitas/fotos/remover/{{ foto.id }}" method="post" onsubmit="return confirm('Apagar esta foto?')">
                             <button type="submit" class="btn-delete-photo">×</button>
