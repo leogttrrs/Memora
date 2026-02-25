@@ -14,10 +14,10 @@
 
         .background-memories {
             position: fixed;
-            bottom: 50px; /* Sobe um pouco do limite inferior para dar um charme */
+            bottom: 50px;
             left: 0;
             width: 100vw;
-            height: 280px; /* Altura suficiente para as fotos + sombra */
+            height: 280px;
             z-index: -2;
             overflow: hidden;
             pointer-events: none;
@@ -29,7 +29,6 @@
         .memory-track {
             display: flex;
             width: max-content;
-            /* A duração total é proporcional ao número de fotos */
             animation: scrollMemories calc(var(--num-fotos) * 4s) linear infinite;
         }
 
@@ -40,7 +39,6 @@
             margin-right: 20px;
             border-radius: 15px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-            /* Removi o filtro de escala de cinza para você ver as cores originais */
         }
 
         @keyframes scrollMemories {
