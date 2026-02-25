@@ -6,6 +6,52 @@
     <title>Memora - {{ circulo_ativo.nome }}</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="icon" href="/static/memora.png">
+    <style>
+        :root {
+            --largura-bloco: 300px;
+            --num-fotos: {{ fotos|length }};
+        }
+
+        .background-memories {
+            position: fixed;
+            bottom: 50px; /* Sobe um pouco do limite inferior para dar um charme */
+            left: 0;
+            width: 100vw;
+            height: 280px; /* Altura suficiente para as fotos + sombra */
+            z-index: -2;
+            overflow: hidden;
+            pointer-events: none;
+
+            -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+            mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+        }
+
+        .memory-track {
+            display: flex;
+            width: max-content;
+            /* A duração total é proporcional ao número de fotos */
+            animation: scrollMemories calc(var(--num-fotos) * 4s) linear infinite;
+        }
+
+        .memory-track img {
+            width: 280px;
+            height: 280px;
+            object-fit: cover;
+            margin-right: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            /* Removi o filtro de escala de cinza para você ver as cores originais */
+        }
+
+        @keyframes scrollMemories {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(calc(-1 * var(--largura-bloco) * var(--num-fotos)));
+            }
+        }
+    </style>
 </head>
 <body>
     <header class="top-bar">
@@ -49,6 +95,25 @@
                 <div class="icon">✈️</div>
                 <h3>Viagens</h3>
             </a>
+        </div>
+    </div>
+    <div class="background-memories">
+        <div class="memory-track">
+            {% for foto in fotos %}
+                <img src="{{ foto }}" alt="Memória">
+            {% endfor %}
+
+            {% for foto in fotos %}
+                <img src="{{ foto }}" alt="Memória">
+            {% endfor %}
+
+            {% for foto in fotos %}
+                <img src="{{ foto }}" alt="Memória">
+            {% endfor %}
+
+            {% for foto in fotos %}
+                <img src="{{ foto }}" alt="Memória">
+            {% endfor %}
         </div>
     </div>
 </body>

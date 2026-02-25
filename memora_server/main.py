@@ -5,6 +5,7 @@ from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import RedirectResponse
 from core.database import get_connection
+import random
 import os
 
 from web.routers import filmes, series, jogos, receitas, viagens, auth, circulos
@@ -80,8 +81,72 @@ def read_dashboard(request: Request):
     if not user or not circulo_ativo:
         return RedirectResponse(url="/")
 
+    fotos_background = []
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        query = """
+            -- 1. FILMES (Capa e Galeria)
+            SELECT imagem_capa FROM filmes WHERE circulo_id = %s AND imagem_capa IS NOT NULL
+            UNION
+            SELECT caminho_foto FROM fotos_filme ff JOIN filmes f ON f.id = ff.filme_id WHERE f.circulo_id = %s
+            UNION
+
+            -- 2. SÉRIES (Capa, Galeria Série e Galeria Temporada)
+            SELECT imagem_capa FROM series WHERE circulo_id = %s AND imagem_capa IS NOT NULL
+            UNION
+            SELECT fs.caminho_foto FROM fotos_serie fs JOIN series s ON s.id = fs.serie_id WHERE s.circulo_id = %s
+            UNION
+            SELECT ft.caminho_foto FROM fotos_temporada ft 
+                JOIN temporadas t ON t.id = ft.temporada_id 
+                JOIN series s ON s.id = t.serie_id WHERE s.circulo_id = %s
+            UNION
+
+            -- 3. JOGOS (Capa e Galeria)
+            SELECT imagem_capa FROM jogos WHERE circulo_id = %s AND imagem_capa IS NOT NULL
+            UNION
+            SELECT caminho_foto FROM fotos_jogo fj JOIN jogos j ON j.id = fj.jogo_id WHERE j.circulo_id = %s
+            UNION
+
+            -- 4. RECEITAS (Capa e Galeria)
+            SELECT imagem_capa FROM receitas WHERE circulo_id = %s AND imagem_capa IS NOT NULL
+            UNION
+            SELECT caminho_foto FROM fotos_receita fr JOIN receitas r ON r.id = fr.receita_id WHERE r.circulo_id = %s
+            UNION
+
+            -- 5. VIAGENS (Capa, Galeria Viagem e Galeria Cidade)
+            SELECT imagem_capa FROM viagens WHERE circulo_id = %s AND imagem_capa IS NOT NULL
+            UNION
+            SELECT fv.caminho_foto FROM fotos_viagem fv JOIN viagens v ON v.id = fv.viagem_id WHERE v.circulo_id = %s
+            UNION
+            SELECT fc.caminho_foto FROM fotos_cidade fc 
+                JOIN cidades_x_viagem cv ON cv.id = fc.cidade_id 
+                JOIN viagens v ON v.id = cv.viagem_id WHERE v.circulo_id = %s
+        """
+
+        cursor.execute(query, (circulo_ativo['id'],) * 12)
+        rows = cursor.fetchall()
+
+        for r in rows:
+            url = r[0]
+            imagens_para_ignorar = ['default_cover.png', 'default_city.png', 'default_cover_k7dlns.jpg']
+            if any(padrao in url for padrao in imagens_para_ignorar):
+                continue
+
+            if not url.startswith('http'):
+                url = f"/static/{url}"
+            fotos_background.append(url)
+
+        random.shuffle(fotos_background)
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao buscar fotos do dashboard: {e}")
+
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "user": user,
-        "circulo_ativo": circulo_ativo
+        "circulo_ativo": circulo_ativo,
+        "fotos": fotos_background,
     })
