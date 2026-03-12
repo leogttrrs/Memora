@@ -127,7 +127,7 @@ def read_dashboard(request: Request):
         """
 
         cursor.execute(query, (circulo_ativo['id'],) * 12)
-        rows = cursor.fetchall()
+        rows = cursor.fetchall()[:30]
 
         for r in rows:
             url = r[0]
